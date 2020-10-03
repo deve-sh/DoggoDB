@@ -12,6 +12,8 @@ let errors = {
 	NODBEXISTS: "No Databse with that name exists.",
 	NOTABLENAME: "No Table Name provided.",
 	TABLENOTFOUND: "Table with that name not found.",
+	NODATAPROVIDED: "No Data provided.",
+	NOACTIVETABLE: "No ref to table created.",
 };
 
 function getDatabase(dbName) {
@@ -29,13 +31,16 @@ function writeDatabase(dbName, databaseObject) {
 function db(dbName) {
 	if (!dbName) throw new Error(errors.NODBNAME);
 
-	let unserializedDatabase = unserialize(getDatabase(dbName));
+	let databaseString = getDatabase(dbName);
+	let unserializedDatabase = {};
+
+	if (databaseString) unserializedDatabase = unserialize(getDatabase(dbName));
 
 	if (!unserializedDatabase)
 		// Database doesn't exist.
 		createDatabase(dbName);
 
-	createDBObjectToReturn = function() {
+	this.createDBObjectToReturn = function() {
 		return {
 			database: this.databaseObject,
 			table: this.table,
@@ -43,28 +48,23 @@ function db(dbName) {
 			activeTable: this.activeTable,
 			create: this.create,
 			save: this.save,
+			drop: this.drop,
+			add: this.add,
+			find: this.find,
+			get: this.get,
 		};
 	};
 
-	this.databaseObject = unserialize(getDatabase(dbName));
+	this.databaseObject = unserializedDatabase;
 	this.activeTable = null;
 	this.databaseName = dbName;
 
-	this.database = {
-		database: this.databaseObject,
-		table: this.table,
-		list: this.list,
-		activeTable: this.activeTable,
-		create: this.create,
-		save: this.save,
-	};
-
-	save = function() {
+	this.save = function() {
 		writeDatabase(this.databaseName, this.databaseObject);
 	};
 
 	// Operations.
-	table = function(tableName) {
+	this.table = function(tableName) {
 		if (!tableName) throw new Error(errors.NOTABLENAME);
 
 		if (this.databaseObject[tableName])
@@ -74,31 +74,25 @@ function db(dbName) {
 		return this.createDBObjectToReturn();
 	};
 
-	list = function() {
+	this.list = function() {
 		// List all tables.
 		let tableNames = Object.keys(this.databaseObject);
 		return tableNames;
 	};
 
-	create = function(tableName) {
+	this.create = function(tableName) {
 		// Function to create a new table.
 		if (!tableName) throw new Error(errors.NOTABLENAME);
 
-		this.databaseObject[tableName] = {
-			tableName,
-			createdAt: new Date(),
-			updatedAt: new Date(),
-			contents: [],
-		};
-		this.database = this.databaseObject;
-		this.activeTable = this.databaseObject[tableName];
+		this.activeTable = new Table(tableName);
+		this.databaseObject[tableName] = this.activeTable;
 
 		this.save();
 
 		return this.createDBObjectToReturn();
 	};
 
-	drop = function(tableName) {
+	this.drop = function(tableName) {
 		// Code to drop an entire table.
 		if (tableName) {
 			if (this.activeTable && tableName === this.activeTable.tableName)
@@ -122,37 +116,81 @@ function db(dbName) {
 		return this.createDBObjectToReturn();
 	};
 
-	get = function() {
+	this.get = function() {
 		if (this.activeTable && this.activeTable.contents) {
-			// Code to get contents of the entire table.
+			// Get contents of the entire table.
 			return this.activeTable.contents;
 		}
 		return [];
 	};
 
-	find = function(filters) {
+	this.find = function(filters) {
 		if (this.activeTable && this.activeTable.contents && filters) {
-			// Code to drop the entire table.
-			let resultSet = [];
-			for (let row of this.activeTable.contents) {
-				let allFiltersMatch = true;
-				for (let filter in filtres) {
-					if (!row[filter] || row[filter] != filters[filter])
-						allFiltersMatch = false;
-				}
-				if (allFiltersMatch) resultSet.push(row);
-			}
-
+			let resultSet = this.activeTable.find(filters);
 			return resultSet;
 		}
 		return [];
+	};
+
+	this.add = function(newRow) {
+		if (!newRow) throw new Error(errors.NODATAPROVIDED);
+		if (!this.activeTable) throw new Error(errors.NOACTIVETABLE);
+
+		this.activeTable.addToContents(newRow);
+		this.databaseObject[this.activeTable.tableName] = this.activeTable;
+
+		this.save();
+
+		return this.createDBObjectToReturn();
 	};
 
 	this.table = this.table.bind(this);
 	this.list = this.list.bind(this);
 	this.create = this.create.bind(this);
 	this.save = this.save.bind(this);
+	this.drop = this.drop.bind(this);
+	this.get = this.get.bind(this);
+	this.find = this.find.bind(this);
+	this.add = this.add.bind(this);
+
 	this.createDBObjectToReturn = this.createDBObjectToReturn.bind(this);
 
 	return this.createDBObjectToReturn();
+}
+
+// Abstraction instances.
+
+class Table {
+	constructor(tableName) {
+		this.contents = [];
+		this.tableName = tableName;
+		this.createdAt = new Date();
+		this.updatedAt = new Date();
+	}
+
+	addToContents(newRow) {
+		this.contents.push({ uid: generateUniqueId(), ...newRow });
+		this.updatedAt = new Date();
+	}
+
+	find(filters) {
+		// Code to find a result set based on filters.
+		let resultSet = [];
+		for (let row of this.contents) {
+			let allFiltersMatch = true;
+			for (let filter in filtres) {
+				if (!row[filter] || row[filter] != filters[filter])
+					allFiltersMatch = false;
+			}
+			if (allFiltersMatch) resultSet.push(row);
+		}
+		return resultSet;
+	}
+}
+
+/* Other helper functions. */
+function generateUniqueId() {
+	return parseInt(
+		new Date().getTime() + Math.random() * 10 + Math.random() * 10
+	);
 }
