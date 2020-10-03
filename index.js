@@ -13,7 +13,8 @@ let errors = {
 	NOTABLENAME: "No Table Name provided.",
 	TABLENOTFOUND: "Table with that name not found.",
 	NODATAPROVIDED: "No Data provided.",
-	NOACTIVETABLE: "No ref to table created.",
+	NOACTIVETABLE: "No reference to table created.",
+	TABLEALREADYEXISTS: "Table with that name already exists.",
 };
 
 function getDatabase(dbName) {
@@ -83,6 +84,9 @@ function db(dbName) {
 	this.create = function(tableName) {
 		// Function to create a new table.
 		if (!tableName) throw new Error(errors.NOTABLENAME);
+		
+		if (tableName in this.databaseObject)
+			throw new Error(errors.TABLEALREADYEXISTS);
 
 		this.activeTable = new Table(tableName);
 		this.databaseObject[tableName] = this.activeTable;
@@ -94,6 +98,7 @@ function db(dbName) {
 
 	this.drop = function(tableName) {
 		// Code to drop an entire table.
+		// If no tableName is passed, it drops the active table if any.
 		if (tableName) {
 			if (this.activeTable && tableName === this.activeTable.tableName)
 				this.activeTable = null;
@@ -117,29 +122,111 @@ function db(dbName) {
 	};
 
 	this.get = function() {
-		if (this.activeTable && this.activeTable.contents) {
-			// Get contents of the entire table.
-			return this.activeTable.contents;
-		}
-		return [];
-	};
-
-	this.find = function(filters) {
-		if (this.activeTable && this.activeTable.contents && filters) {
-			let resultSet = this.activeTable.find(filters);
-			return resultSet;
-		}
-		return [];
+		if (this.activeTable) return this.activeTable.contents; // Get contents of the entire table.
+		throw new Error(errors.NOACTIVETABLE);
 	};
 
 	this.add = function(newRow) {
 		if (!newRow) throw new Error(errors.NODATAPROVIDED);
 		if (!this.activeTable) throw new Error(errors.NOACTIVETABLE);
 
-		this.activeTable.addToContents(newRow);
+		this.activeTable.contents.push({ uid: generateUniqueId(), ...newRow });
+		this.activeTable.updatedAt = new Date();
 		this.databaseObject[this.activeTable.tableName] = this.activeTable;
 
 		this.save();
+
+		return this.createDBObjectToReturn();
+	};
+
+	this.find = function(filters) {
+		if (
+			this.activeTable &&
+			this.activeTable.contents &&
+			this.activeTable.contents.length &&
+			filters
+		) {
+			// Code to find a result set based on filters.
+			let resultSet = [];
+			for (let row of this.activeTable.contents) {
+				let allFiltersMatch = true;
+				for (let filter in filters)
+					if (!row[filter] || row[filter] != filters[filter])
+						allFiltersMatch = false;
+
+				if (allFiltersMatch) resultSet.push(row);
+			}
+			return resultSet;
+		}
+		return [];
+	};
+
+	this.findAndUpdate = function(filters, updates, updateOnlyOne = true) {
+		// Function to update a resultset in the database.
+		if (
+			this.activeTable &&
+			this.activeTable.contents &&
+			this.activeTable.contents.length &&
+			filters &&
+			updates
+		) {
+			for (
+				let rowIndex = 0;
+				rowIndex < this.activeTable.contents.length;
+				rowIndex++
+			) {
+				let allFiltersMatch = true;
+				let row = this.activeTable.contents[rowIndex];
+
+				for (let filter in filters)
+					if (!row[filter] || row[filter] != filters[filter])
+						allFiltersMatch = false;
+
+				if (allFiltersMatch) {
+					row = { ...updates };
+					this.activeTable.contents[rowIndex] = row;
+				}
+
+				if (updateOnlyOne) break;
+			}
+
+			this.databaseObject[this.activeTable.tableName] = this.activeTable;
+			this.save();
+		}
+
+		return this.createDBObjectToReturn();
+	};
+
+	this.delete = function(filters, deleteOnlyOne = true) {
+		// Function to delete a row.
+		if (
+			this.activeTable &&
+			this.activeTable.contents &&
+			this.activeTable.contents.length &&
+			filters &&
+			updates
+		) {
+			for (
+				let rowIndex = 0;
+				rowIndex < this.activeTable.contents.length;
+				rowIndex++
+			) {
+				let allFiltersMatch = true;
+				let row = this.activeTable.contents[rowIndex];
+
+				for (let filter in filters)
+					if (!row[filter] || row[filter] != filters[filter])
+						allFiltersMatch = false;
+
+				if (allFiltersMatch)
+					this.activeTable.contents.splice(rowIndex, 1);
+
+				if (updateOnlyOne) break;
+			}
+
+			this.databaseObject[this.activeTable.tableName] = this.activeTable;
+			this.save();
+		}
 
 		return this.createDBObjectToReturn();
 	};
@@ -152,6 +239,8 @@ function db(dbName) {
 	this.get = this.get.bind(this);
 	this.find = this.find.bind(this);
 	this.add = this.add.bind(this);
+	this.findAndUpdate = this.findAndUpdate.bind(this);
+	this.delete = this.delete.bind(this);
 
 	this.createDBObjectToReturn = this.createDBObjectToReturn.bind(this);
 
@@ -166,25 +255,6 @@ class Table {
 		this.tableName = tableName;
 		this.createdAt = new Date();
 		this.updatedAt = new Date();
-	}
-
-	addToContents(newRow) {
-		this.contents.push({ uid: generateUniqueId(), ...newRow });
-		this.updatedAt = new Date();
-	}
-
-	find(filters) {
-		// Code to find a result set based on filters.
-		let resultSet = [];
-		for (let row of this.contents) {
-			let allFiltersMatch = true;
-			for (let filter in filtres) {
-				if (!row[filter] || row[filter] != filters[filter])
-					allFiltersMatch = false;
-			}
-			if (allFiltersMatch) resultSet.push(row);
-		}
-		return resultSet;
 	}
 }
 
