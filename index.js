@@ -17,6 +17,9 @@ let errors = {
 	TABLEALREADYEXISTS: "Table with that name already exists.",
 };
 
+let reservedFieldNames = ["entryId"];
+let reservedFilters = ["$and", "$or"];
+
 function getDatabase(dbName) {
 	return databaseScope.getItem(dbName);
 }
@@ -58,6 +61,8 @@ function db(
 			add: this.add,
 			find: this.find,
 			get: this.get,
+			findAndUpdate: this.findAndUpdate,
+			delete: this.delete,
 		};
 	};
 
@@ -67,8 +72,8 @@ function db(
 
 	// Event Listeners
 	this.onChange = null;
-	
-	if(listeners && typeof listeners === 'object'){
+
+	if (listeners && typeof listeners === "object") {
 		this.onChange = listeners.onChange || null;
 		// Add more listeners as required.
 	}
@@ -91,9 +96,8 @@ function db(
 	};
 
 	this.list = function() {
-		// List all tables.
-		let tableNames = Object.keys(this.databaseObject);
-		return tableNames;
+		// List all tables in the database along with their contents and metadata.
+		return this.databaseObject;
 	};
 
 	this.create = function(tableName) {
@@ -145,8 +149,11 @@ function db(
 		if (!newRow) throw new Error(errors.NODATAPROVIDED);
 		if (!this.activeTable) throw new Error(errors.NOACTIVETABLE);
 
-		this.activeTable.contents.push({ uid: generateUniqueId(), ...newRow });
-		this.activeTable.updatedAt = new Date();
+		this.activeTable.contents.push({
+			entryId: generateUniqueId(),
+			...newRow,
+		});
+		this.activeTable.updatedAt = JSON.stringify(new Date());
 		this.databaseObject[this.activeTable.tableName] = this.activeTable;
 
 		this.save();
@@ -165,14 +172,15 @@ function db(
 			let resultSet = [];
 			for (let row of this.activeTable.contents) {
 				let allFiltersMatch = true;
-				for (let filter in filters)
-					if (!row[filter] || row[filter] != filters[filter])
+				for (let filter in filters) {
+					if (!(filter in row) || row[filter] != filters[filter])
 						allFiltersMatch = false;
-
+				}
 				if (allFiltersMatch) resultSet.push(row);
 			}
 			return resultSet;
-		}
+		} else if (this.activeTable && this.activeTable.contents)
+			return this.activeTable.contents;
 		return [];
 	};
 
@@ -182,9 +190,16 @@ function db(
 			this.activeTable &&
 			this.activeTable.contents &&
 			this.activeTable.contents.length &&
-			filters &&
 			updates
 		) {
+			// Check if the user is not updating any reserved fields.
+			if (updates && Object.keys(updates).length > 0) {
+				for (let update in updates) {
+					if (reservedFieldNames.includes(update))
+						delete updates[update];
+				}
+			}
+
 			for (
 				let rowIndex = 0;
 				rowIndex < this.activeTable.contents.length;
@@ -193,12 +208,15 @@ function db(
 				let allFiltersMatch = true;
 				let row = this.activeTable.contents[rowIndex];
 
-				for (let filter in filters)
-					if (!row[filter] || row[filter] != filters[filter])
-						allFiltersMatch = false;
+				if (filters && Object.keys(filters).length > 0) {
+					for (let filter in filters) {
+						if (!(filter in row) || row[filter] != filters[filter])
+							allFiltersMatch = false;
+					}
+				}
 
 				if (allFiltersMatch) {
-					row = { ...updates };
+					row = { ...row, ...updates };
 					this.activeTable.contents[rowIndex] = row;
 				}
 
@@ -230,7 +248,7 @@ function db(
 				let row = this.activeTable.contents[rowIndex];
 
 				for (let filter in filters)
-					if (!row[filter] || row[filter] != filters[filter])
+					if (!(filter in row) || row[filter] != filters[filter])
 						allFiltersMatch = false;
 
 				if (allFiltersMatch)
@@ -268,8 +286,8 @@ class Table {
 	constructor(tableName) {
 		this.contents = [];
 		this.tableName = tableName;
-		this.createdAt = new Date();
-		this.updatedAt = new Date();
+		this.createdAt = JSON.stringify(new Date());
+		this.updatedAt = JSON.stringify(new Date());
 	}
 }
 
