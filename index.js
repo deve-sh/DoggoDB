@@ -1,5 +1,5 @@
 /*
-	Doggo DB - For Doggos
+	Doggo DB 🐶
 */
 
 let databaseScope = window.localStorage;
@@ -15,6 +15,7 @@ let errors = {
 	NODATAPROVIDED: "No Data provided.",
 	NOACTIVETABLE: "No reference to table created.",
 	TABLEALREADYEXISTS: "Table with that name already exists.",
+	NOTAVALIDOBJECT: "Not a valid object for storage.",
 };
 
 let reservedFieldNames = ["entryId"];
@@ -160,6 +161,8 @@ function db(
 	this.add = function(newRow) {
 		if (!newRow) throw new Error(errors.NODATAPROVIDED);
 		if (!this.activeTable) throw new Error(errors.NOACTIVETABLE);
+		if (typeof newRow !== "object" || !Object.keys(newRow).length)
+			throw new Error(errors.NOTAVALIDOBJECT);
 
 		this.activeTable.contents.push({
 			entryId: generateUniqueId(),
