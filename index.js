@@ -29,7 +29,12 @@ function writeDatabase(dbName, databaseObject) {
 	return databaseScope.setItem(dbName, serialize(databaseObject));
 }
 
-function db(dbName) {
+function db(
+	dbName,
+	listeners = {
+		onChange: null,
+	}
+) {
 	if (!dbName) throw new Error(errors.NODBNAME);
 
 	let databaseString = getDatabase(dbName);
@@ -60,8 +65,18 @@ function db(dbName) {
 	this.activeTable = null;
 	this.databaseName = dbName;
 
+	// Event Listeners
+	this.onChange = null;
+	
+	if(listeners && typeof listeners === 'object'){
+		this.onChange = listeners.onChange || null;
+		// Add more listeners as required.
+	}
+
 	this.save = function() {
 		writeDatabase(this.databaseName, this.databaseObject);
+		if (this.onChange && typeof this.onChange === "function")
+			this.onChange(this.databaseObject);
 	};
 
 	// Operations.
@@ -84,7 +99,7 @@ function db(dbName) {
 	this.create = function(tableName) {
 		// Function to create a new table.
 		if (!tableName) throw new Error(errors.NOTABLENAME);
-		
+
 		if (tableName in this.databaseObject)
 			throw new Error(errors.TABLEALREADYEXISTS);
 
