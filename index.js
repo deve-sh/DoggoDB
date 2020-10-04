@@ -254,7 +254,7 @@ function db(
 				if (allFiltersMatch)
 					this.activeTable.contents.splice(rowIndex, 1);
 
-				if (updateOnlyOne) break;
+				if (deleteOnlyOne) break;
 			}
 
 			this.databaseObject[this.activeTable.tableName] = this.activeTable;
