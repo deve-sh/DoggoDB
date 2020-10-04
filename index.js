@@ -25,7 +25,14 @@ function getDatabase(dbName) {
 }
 
 function createDatabase(dbName) {
-	return databaseScope.setItem(dbName, serialize({}));
+	return databaseScope.setItem(
+		dbName,
+		serialize({
+			tables: {},
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		})
+	);
 }
 
 function writeDatabase(dbName, databaseObject) {
@@ -40,14 +47,17 @@ function db(
 ) {
 	if (!dbName) throw new Error(errors.NODBNAME);
 
-	let databaseString = getDatabase(dbName);
-	let unserializedDatabase = {};
+	let persistedDatabase = getDatabase(dbName);
+	let unserializedDatabase = {
+		tables: {},
+		createdAt: new Date(),
+		updatedAt: new Date(),
+	};
 
-	if (databaseString) unserializedDatabase = unserialize(getDatabase(dbName));
+	if (persistedDatabase)
+		unserializedDatabase = unserialize(persistedDatabase);
 
-	if (!unserializedDatabase)
-		// Database doesn't exist.
-		createDatabase(dbName);
+	if (!unserializedDatabase) createDatabase(dbName); // Database doesn't exist.
 
 	this.createDBObjectToReturn = function() {
 		return {
@@ -63,6 +73,7 @@ function db(
 			get: this.get,
 			findAndUpdate: this.findAndUpdate,
 			delete: this.delete,
+			updateAt: this.updateAt,
 		};
 	};
 
@@ -80,6 +91,7 @@ function db(
 
 	this.save = function() {
 		writeDatabase(this.databaseName, this.databaseObject);
+		this.databaseObject.updatedAt = new Date();
 		if (this.onChange && typeof this.onChange === "function")
 			this.onChange(this.databaseObject);
 	};
@@ -88,8 +100,8 @@ function db(
 	this.table = function(tableName) {
 		if (!tableName) throw new Error(errors.NOTABLENAME);
 
-		if (this.databaseObject[tableName])
-			this.activeTable = this.databaseObject[tableName];
+		if (this.databaseObject.tables[tableName])
+			this.activeTable = this.databaseObject.tables[tableName];
 		else this.create(tableName);
 
 		return this.createDBObjectToReturn();
@@ -97,18 +109,18 @@ function db(
 
 	this.list = function() {
 		// List all tables in the database along with their contents and metadata.
-		return this.databaseObject;
+		return this.databaseObject.tables;
 	};
 
 	this.create = function(tableName) {
 		// Function to create a new table.
 		if (!tableName) throw new Error(errors.NOTABLENAME);
 
-		if (tableName in this.databaseObject)
+		if (tableName in this.databaseObject.tables)
 			throw new Error(errors.TABLEALREADYEXISTS);
 
 		this.activeTable = new Table(tableName);
-		this.databaseObject[tableName] = this.activeTable;
+		this.databaseObject.tables[tableName] = this.activeTable;
 
 		this.save();
 
@@ -122,8 +134,8 @@ function db(
 			if (this.activeTable && tableName === this.activeTable.tableName)
 				this.activeTable = null;
 
-			if (tableName in this.databaseObject)
-				delete this.databaseObject[tableName];
+			if (tableName in this.databaseObject.tables)
+				delete this.databaseObject.tables[tableName];
 		} else {
 			let tableNameToDelete = null;
 
@@ -153,7 +165,7 @@ function db(
 			entryId: generateUniqueId(),
 			...newRow,
 		});
-		this.activeTable.updatedAt = JSON.stringify(new Date());
+		this.activeTable.updatedAt = new Date();
 		this.databaseObject[this.activeTable.tableName] = this.activeTable;
 
 		this.save();
@@ -230,6 +242,38 @@ function db(
 		return this.createDBObjectToReturn();
 	};
 
+	this.updateAt = function(rowIndex, updates) {
+		// Function to update a row in a table at a certain index.
+		if (!this.activeTable) throw new Error(erors.NOACTIVETABLE);
+
+		if (
+			this.activeTable &&
+			this.activeTable.contents &&
+			this.activeTable.contents.length &&
+			rowIndex >= 0 &&
+			this.activeTable.contents.length > rowIndex &&
+			updates
+		) {
+			// Check if the user is not updating any reserved fields.
+			if (updates && Object.keys(updates).length > 0) {
+				for (let update in updates)
+					if (reservedFieldNames.includes(update))
+						delete updates[update];
+			}
+
+			this.activeTable.contents[rowIndex] = {
+				...this.activeTable.contents[rowIndex],
+				...updates,
+			};
+			this.activeTable.updatedAt = new Date();
+
+			this.databaseObject[this.activeTable.tableName] = this.activeTable;
+			this.save();
+		}
+
+		return this.createDBObjectToReturn();
+	};
+
 	this.delete = function(filters, deleteOnlyOne = true) {
 		// Function to delete a row.
 		if (
@@ -274,6 +318,7 @@ function db(
 	this.add = this.add.bind(this);
 	this.findAndUpdate = this.findAndUpdate.bind(this);
 	this.delete = this.delete.bind(this);
+	this.updateAt = this.updateAt.bind(this);
 
 	this.createDBObjectToReturn = this.createDBObjectToReturn.bind(this);
 
@@ -286,8 +331,8 @@ class Table {
 	constructor(tableName) {
 		this.contents = [];
 		this.tableName = tableName;
-		this.createdAt = JSON.stringify(new Date());
-		this.updatedAt = JSON.stringify(new Date());
+		this.createdAt = new Date();
+		this.updatedAt = new Date();
 	}
 }
 
