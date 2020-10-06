@@ -4,7 +4,15 @@ DoggoDB is a simple implementation of a local-storage based mini database in the
 
 There are plans to expand to full-fledged file based database storage on the server-side with indices, transactions and a better querying syntax.
 
-## Use Cases and Features
+## Index
+
+-   [Use Cases And Features](#use-cases-and-features)
+-   [Installation](#installation)
+-   [Usage](#usage) - [Initialize the Database](#initialize-the-database) - [Creating Tables](#creating-tables) - [Adding Data to Tables](#adding-data-to-tables) - [Retreiving Data](#retreiving-data) - [Finding And Querying Data](#finding-and-querying-data) - [Updating Data](#updating-data) - [Deleting Data](#deleting-data)
+-   [Contribution](#contribution)
+-   [Suggestions, Issues and Bugs](#suggestions-issues-and-bugs)
+
+## Use Cases And Features
 
 This is not supposed to be a primary database, which is supposed to be obvious. Instead, DoggoDB is supposed to be used as primarily a localStorage based cache for libraries/frameworks such as Svelte or just plain HTML, CSS and JS that don't have a native persisted state management solution such as `Redux-Persist` (Although you can use Redux and Redux Persist with pretty much any framework or libraries, how many of us do?)
 
