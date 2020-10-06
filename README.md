@@ -88,6 +88,36 @@ Query data based on field values (Only linear fields supported, no array or obje
 db.table("newtable").find({ firstName: "ABC" });	// [ { ... }]
 ```
 
+To find without any filters, you can pass an empty object or no filter object at all.
+
+```js
+db.table("newtable").find({});
+db.table("newtable").find();
+
+// To find by id. Simply include it.
+db.table("newtable").find({ entryId: 123 });
+```
+
+To update a set of values fetched from filters. Use the `findAndUpdate` method.
+
+```js
+db.table("newtable").findAndUpdate(filters, { ...updates });
+```
+
+To update at a specific index in the contents, use the `updateAt` function.
+
+```js
+db.table("newtable").updateAt(entryIndex, { ...updates });
+```
+
 ## Contribution
 
-## Issues and Bugs
+This project is extremely naive at this stage, and any contibutions or suggestions would be highly appreciated. 
+
+For contributing to the code, simply fork this repository, make the changes you may want to in a new branch and create a pull request for it.
+
+For making any suggestions, read the [Issues and Bugs](#suggestions-issues-and-bugs) section.
+
+## Suggestions, Issues and Bugs
+
+For any issues related to this project, simply raise an issue in the repository and I will respond quickly.

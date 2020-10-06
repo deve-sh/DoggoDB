@@ -181,7 +181,8 @@ function db(
 			this.activeTable &&
 			this.activeTable.contents &&
 			this.activeTable.contents.length &&
-			filters
+			filters &&
+			Object.keys(filters).length
 		) {
 			// Code to find a result set based on filters.
 			let resultSet = [];
