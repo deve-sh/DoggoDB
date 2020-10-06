@@ -15,12 +15,13 @@ You absolutely can. This is just an interesting side project that I plan to expa
 Also, this was built out of my own need for a good abstraction on top of `localStorage`, and also better looking querying syntax 😛.
 
 DoggoDB in its first iteration supports:
-- Creation of databases.
-- Creation of tables.
-- Querying of tables.
-- Adding data to tables.
-- Updation of existing data.
-- Deletion based on filters.
+
+-   Creation of databases.
+-   Creation of tables.
+-   Querying of tables.
+-   Adding data to tables.
+-   Updation of existing data.
+-   Deletion based on filters.
 
 I.E: The basic CRUD system of NoSQL Databases.
 
@@ -31,6 +32,7 @@ Run the following command to install this database utility.
 ```bash
 npm install doggodb
 ```
+
 And include as:
 
 ```javascript
@@ -52,12 +54,14 @@ To download from a CDN:
 
 ## Usage
 
-Initialize the database:
+#### Initialize the Database
 
 ```js
 const db = new doggodb("databaseName");
 const secondDB = new doggodb("separateDatabase");
 ```
+
+#### Creating tables
 
 Create a table using the instance:
 
@@ -65,43 +69,57 @@ Create a table using the instance:
 db.table("newtable");
 ```
 
+#### Adding data to tables
+
 Add data to a table (Right now data container can only be an object, but the fields it contains can be anything supported by `JSON.stringify`)
 
 ```js
-db.table("newtable").add({ 
-	firstName: "ABC", 
-	lastName: "XYZ"
+db.table("newtable").add({
+	firstName: "ABC",
+	lastName: "XYZ",
 });
 ```
 
-When you add data to a table, DoggoDB automatically adds a unique identifider called `entryId`. The different name is chosen to not conflict with idetifiers such as **'id'** or **'_id'** that you might be storing locally after importing from your primary database.
+When you add data to a table, DoggoDB automatically adds a unique identifider called `entryId`. The different name is chosen to not conflict with idetifiers such as **'id'** or **'\_id'** that you might be storing locally after importing from your primary database.
+
+#### Retreiving Data
 
 Get all data stored in a table as an array:
 
 ```js
-db.table("newtable").get();	// [ {...} ]
+db.table("newtable").get(); // [ {...} ]
 ```
+
+#### Finding and Querying Data
 
 Query data based on field values (Only linear fields supported, no array or object equality as of now):
 
 ```js
-db.table("newtable").find({ firstName: "ABC" });	// [ { ... }]
+db.table("newtable").find({ firstName: "ABC" }); // [ { ... }]
 ```
 
 To find without any filters, you can pass an empty object or no filter object at all.
 
 ```js
-db.table("newtable").find({});
-db.table("newtable").find();
+db.table("newtable").find({}); // Technically the same as .get
+db.table("newtable").find(); // Technically the same as .get
 
 // To find by id. Simply include it.
 db.table("newtable").find({ entryId: 123 });
 ```
 
+#### Updating Data
+
 To update a set of values fetched from filters. Use the `findAndUpdate` method.
 
 ```js
 db.table("newtable").findAndUpdate(filters, { ...updates });
+```
+
+This method by default only **updates the first entry it finds matching the filters**, in order to update all the entries, pass `false` as the last paramter.
+
+```js
+db.table("newtable").findAndUpdate(filters, { ...updates }, false);
 ```
 
 To update at a specific index in the contents, use the `updateAt` function.
@@ -110,9 +128,23 @@ To update at a specific index in the contents, use the `updateAt` function.
 db.table("newtable").updateAt(entryIndex, { ...updates });
 ```
 
+#### Deleting Data
+
+To delete data that matches a filter. Use the `delete` method.
+
+```js
+db.table("newtable").delete(filters);
+```
+
+This method, just like the `findAndUpdate` method, **deletes only the the first entry it finds matching the filters**. To override this behaviour, pass `false` as the final argument to the function.
+
+```js
+db.table("newtable").delete(filters, false);
+```
+
 ## Contribution
 
-This project is extremely naive at this stage, and any contibutions or suggestions would be highly appreciated. 
+This project is extremely naive at this stage, and any contibutions or suggestions would be highly appreciated.
 
 For contributing to the code, simply fork this repository, make the changes you may want to in a new branch and create a pull request for it.
 
