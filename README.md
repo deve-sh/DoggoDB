@@ -8,14 +8,14 @@ There are plans to expand to full-fledged file based database storage on the ser
 
 -   [Use Cases And Features](#use-cases-and-features)
 -   [Installation](#installation)
--   [Usage](#usage) 
-	- [Initialize the Database](#initialize-the-database) 
-	- [Creating Tables](#creating-tables) 
-	- [Adding Data to Tables](#adding-data-to-tables) 
-	- [Retreiving Data](#retreiving-data) 
-	- [Finding And Querying Data](#finding-and-querying-data) 
-	- [Updating Data](#updating-data) 
-	- [Deleting Data](#deleting-data)
+-   [Usage](#usage)
+    -   [Initialize the Database](#initialize-the-database)
+    -   [Creating Tables](#creating-tables)
+    -   [Adding Data to Tables](#adding-data-to-tables)
+    -   [Retreiving Data](#retreiving-data)
+    -   [Finding And Querying Data](#finding-and-querying-data)
+    -   [Updating Data](#updating-data)
+    -   [Deleting Data](#deleting-data)
 -   [Contribution](#contribution)
 -   [Suggestions, Issues and Bugs](#suggestions-issues-and-bugs)
 
@@ -64,16 +64,22 @@ import { db as doggodb } from "doggodb";
 To download from a CDN:
 
 ```html
-<script type="text/javascript" src="https://unpkg.com"></script>
+<script type="text/javascript" src="https://unpkg.com" defer></script>
+<script type="text/javascript" defer>
+	// The 'db' function is inside the 'doggodb' object after importing from CDN.
+	const dbInstance = new doggodb.db("databaseName");
+</script>
 ```
+
+Feel free to play around with the imports and names.
 
 ## Usage
 
 #### Initialize the Database
 
 ```js
-const db = new doggodb("databaseName");
-const secondDB = new doggodb("separateDatabase");
+const dbInstance = new db("databaseName");
+const secondDB = new db("separateDatabase");
 ```
 
 #### Creating tables
@@ -81,7 +87,7 @@ const secondDB = new doggodb("separateDatabase");
 Create a table using the instance:
 
 ```js
-db.table("newtable");
+dbInstance.table("newtable");
 ```
 
 #### Adding data to tables
@@ -89,7 +95,7 @@ db.table("newtable");
 Add data to a table (Right now data container can only be an object, but the fields it contains can be anything supported by `JSON.stringify`)
 
 ```js
-db.table("newtable").add({
+dbInstance.table("newtable").add({
 	firstName: "ABC",
 	lastName: "XYZ",
 });
@@ -102,7 +108,7 @@ When you add data to a table, DoggoDB automatically adds a unique identifider ca
 Get all data stored in a table as an array:
 
 ```js
-db.table("newtable").get(); // [ {...} ]
+dbInstance.table("newtable").get(); // [ {...} ]
 ```
 
 #### Finding and Querying Data
@@ -110,17 +116,17 @@ db.table("newtable").get(); // [ {...} ]
 Query data based on field values (Only linear fields supported, no array or object equality as of now):
 
 ```js
-db.table("newtable").find({ firstName: "ABC" }); // [ { ... }]
+dbInstance.table("newtable").find({ firstName: "ABC" }); // [ { ... }]
 ```
 
 To find without any filters, you can pass an empty object or no filter object at all.
 
 ```js
-db.table("newtable").find({}); // Technically the same as .get
-db.table("newtable").find(); // Technically the same as .get
+dbInstance.table("newtable").find({}); // Technically the same as .get
+dbInstance.table("newtable").find(); // Technically the same as .get
 
 // To find by id. Simply include it.
-db.table("newtable").find({ entryId: 123 });
+dbInstance.table("newtable").find({ entryId: 123 });
 ```
 
 #### Updating Data
@@ -128,19 +134,19 @@ db.table("newtable").find({ entryId: 123 });
 To update a set of values fetched from filters. Use the `findAndUpdate` method.
 
 ```js
-db.table("newtable").findAndUpdate(filters, { ...updates });
+dbInstance.table("newtable").findAndUpdate(filters, { ...updates });
 ```
 
 This method by default only **updates the first entry it finds matching the filters**, in order to update all the entries, pass `false` as the last paramter.
 
 ```js
-db.table("newtable").findAndUpdate(filters, { ...updates }, false);
+dbInstance.table("newtable").findAndUpdate(filters, { ...updates }, false);
 ```
 
 To update at a specific index in the contents, use the `updateAt` function.
 
 ```js
-db.table("newtable").updateAt(entryIndex, { ...updates });
+dbInstance.table("newtable").updateAt(entryIndex, { ...updates });
 ```
 
 #### Deleting Data
@@ -148,13 +154,13 @@ db.table("newtable").updateAt(entryIndex, { ...updates });
 To delete data that matches a filter. Use the `delete` method.
 
 ```js
-db.table("newtable").delete(filters);
+dbInstance.table("newtable").delete(filters);
 ```
 
 This method, just like the `findAndUpdate` method, **deletes only the the first entry it finds matching the filters**. To override this behaviour, pass `false` as the final argument to the function.
 
 ```js
-db.table("newtable").delete(filters, false);
+dbInstance.table("newtable").delete(filters, false);
 ```
 
 ## Contribution
