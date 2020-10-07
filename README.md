@@ -8,7 +8,14 @@ There are plans to expand to full-fledged file based database storage on the ser
 
 -   [Use Cases And Features](#use-cases-and-features)
 -   [Installation](#installation)
--   [Usage](#usage) - [Initialize the Database](#initialize-the-database) - [Creating Tables](#creating-tables) - [Adding Data to Tables](#adding-data-to-tables) - [Retreiving Data](#retreiving-data) - [Finding And Querying Data](#finding-and-querying-data) - [Updating Data](#updating-data) - [Deleting Data](#deleting-data)
+-   [Usage](#usage) 
+	- [Initialize the Database](#initialize-the-database) 
+	- [Creating Tables](#creating-tables) 
+	- [Adding Data to Tables](#adding-data-to-tables) 
+	- [Retreiving Data](#retreiving-data) 
+	- [Finding And Querying Data](#finding-and-querying-data) 
+	- [Updating Data](#updating-data) 
+	- [Deleting Data](#deleting-data)
 -   [Contribution](#contribution)
 -   [Suggestions, Issues and Bugs](#suggestions-issues-and-bugs)
 
