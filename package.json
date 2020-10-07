@@ -1,0 +1,24 @@
+{
+  "name": "doggodb",
+  "version": "1.0.0",
+  "description": "A lightweight database layer built on localStorage for the browser.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deve-sh/DoggoDB.git"
+  },
+  "keywords": [
+    "database",
+    "localStorage",
+    "light"
+  ],
+  "author": "Devesh Kumar",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/deve-sh/DoggoDB/issues"
+  },
+  "homepage": "https://github.com/deve-sh/DoggoDB#readme"
+}
