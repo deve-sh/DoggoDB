@@ -64,7 +64,10 @@ import { db as doggodb } from "doggodb";
 To download from a CDN:
 
 ```html
-<script type="text/javascript" src="https://unpkg.com/doggodb/dist/doggodb.min.js" defer></script>
+<!-- Head -->
+<script type="text/javascript" src="https://unpkg.com/doggodb/dist/doggodb.min.js"></script>
+
+<!-- Body Bottom -->
 <script type="text/javascript" defer>
 	// The 'db' function is inside the 'doggodb' object after importing from CDN.
 	const dbInstance = new doggodb.db("databaseName");
