@@ -1,10 +1,11 @@
 {
   "name": "doggodb",
   "version": "1.0.0",
-  "description": "A lightweight database layer built on localStorage for the browser.",
-  "main": "index.js",
+  "description": "A lightweight dependencyless database layer built on  top of localStorage for the browser.",
+  "main": "dist/doggodb.min.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "bundle": "webpack index.js"
   },
   "repository": {
     "type": "git",
