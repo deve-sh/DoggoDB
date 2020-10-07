@@ -345,4 +345,6 @@ function generateUniqueId() {
 	return parseInt(
 		new Date().getTime() + Math.random() * 10 + Math.random() * 10
 	);
-}
+};
+
+module.exports = { db };
