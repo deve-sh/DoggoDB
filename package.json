@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "bundle": "webpack index.js",
-    "document": "jsdoc index.js README.md -d docs"
+    "document": "jsdoc -c jsdoc-conf.json -d docs"
   },
   "repository": {
     "type": "git",

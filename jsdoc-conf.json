@@ -1,0 +1,6 @@
+{
+	"title": "DoggoDB",
+	"source": {
+		"include": ["index.js", "README.md"]
+	}
+}
