@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Home</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Home</h1>
+
+    
+
+
+
+    
+
+
+    <h3> </h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><h1>Doggo DB 🐶</h1>
+<p>DoggoDB is a simple implementation of a local-storage based mini database in the browser that stores data in the form of JSON Data.</p>
+<p>There are plans to expand to full-fledged file based database storage on the server-side with indices, transactions and a better querying syntax.</p>
+<h2>Index</h2>
+<ul>
+<li><a href="#use-cases-and-features">Use Cases And Features</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#usage">Usage</a>
+<ul>
+<li><a href="#initialize-the-database">Initialize the Database</a></li>
+<li><a href="#creating-tables">Creating Tables</a></li>
+<li><a href="#adding-data-to-tables">Adding Data to Tables</a></li>
+<li><a href="#retreiving-data">Retreiving Data</a></li>
+<li><a href="#finding-and-querying-data">Finding And Querying Data</a></li>
+<li><a href="#updating-data">Updating Data</a></li>
+<li><a href="#deleting-data">Deleting Data</a></li>
+</ul>
+</li>
+<li><a href="#contribution">Contribution</a></li>
+<li><a href="#suggestions-issues-and-bugs">Suggestions, Issues and Bugs</a></li>
+</ul>
+<h2>Use Cases And Features</h2>
+<p>This is not supposed to be a primary database, which is supposed to be obvious. Instead, DoggoDB is supposed to be used as primarily a localStorage based cache for libraries/frameworks such as Svelte or just plain HTML, CSS and JS that don't have a native persisted state management solution such as <code>Redux-Persist</code> (Although you can use Redux and Redux Persist with pretty much any framework or libraries, how many of us do?)</p>
+<h4>Wait a second... Why wouldn't I simply write Local Storage querying code myself?</h4>
+<p>You absolutely can. This is just an interesting side project that I plan to expand to a fully functional server-side database as I learn more about databases. Inspired by projects such as <a href="https://firebase.google.com">Firebase</a> and <a href="https://github.com/typicode/lowdb">lowdb</a> but with 0 dependencies written purely with Vanilla JavaScript.</p>
+<p>Also, this was built out of my own need for a good abstraction on top of <code>localStorage</code>, and also better looking querying syntax 😛.</p>
+<p>DoggoDB in its first iteration supports:</p>
+<ul>
+<li>Creation of databases.</li>
+<li>Creation of tables.</li>
+<li>Querying of tables.</li>
+<li>Adding data to tables.</li>
+<li>Updation of existing data.</li>
+<li>Deletion based on filters.</li>
+</ul>
+<p>I.E: The basic CRUD system of NoSQL Databases.</p>
+<h2>Installation</h2>
+<p>Run the following command to install this database utility.</p>
+<pre class="prettyprint source lang-bash"><code>npm install doggodb
+</code></pre>
+<p>And include as:</p>
+<pre class="prettyprint source lang-javascript"><code>// CommonJS / Node.js (I don't know why you would use this in a server environment at this stage.)
+const { db } = require(&quot;doggodb&quot;);
+
+// ES6 Imports
+import { db } from &quot;doggodb&quot;;
+
+// Named Import
+import { db as doggodb } from &quot;doggodb&quot;;
+</code></pre>
+<p>To download from a CDN:</p>
+<pre class="prettyprint source lang-html"><code>&lt;!-- Head -->
+&lt;script type=&quot;text/javascript&quot; src=&quot;https://unpkg.com/doggodb/dist/doggodb.min.js&quot;>&lt;/script>
+
+&lt;!-- Body Bottom -->
+&lt;script type=&quot;text/javascript&quot; defer>
+	// The 'db' function is inside the 'doggodb' object after importing from CDN.
+	const dbInstance = new doggodb.db(&quot;databaseName&quot;);
+&lt;/script>
+</code></pre>
+<p>Feel free to play around with the imports and names.</p>
+<h2>Usage</h2>
+<h4>Initialize the Database</h4>
+<pre class="prettyprint source lang-js"><code>const dbInstance = new db(&quot;databaseName&quot;);
+const secondDB = new db(&quot;separateDatabase&quot;);
+</code></pre>
+<h4>Creating tables</h4>
+<p>Create a table using the instance:</p>
+<pre class="prettyprint source lang-js"><code>dbInstance.table(&quot;newtable&quot;);
+</code></pre>
+<h4>Adding data to tables</h4>
+<p>Add data to a table (Right now data container can only be an object, but the fields it contains can be anything supported by <code>JSON.stringify</code>)</p>
+<pre class="prettyprint source lang-js"><code>dbInstance.table(&quot;newtable&quot;).add({
+	firstName: &quot;ABC&quot;,
+	lastName: &quot;XYZ&quot;,
+});
+</code></pre>
+<p>When you add data to a table, DoggoDB automatically adds a unique identifider called <code>entryId</code>. The different name is chosen to not conflict with idetifiers such as <strong>'id'</strong> or <strong>'_id'</strong> that you might be storing locally after importing from your primary database.</p>
+<h4>Retreiving Data</h4>
+<p>Get all data stored in a table as an array:</p>
+<pre class="prettyprint source lang-js"><code>dbInstance.table(&quot;newtable&quot;).get(); // [ {...} ]
+</code></pre>
+<h4>Finding and Querying Data</h4>
+<p>Query data based on field values (Only linear fields supported, no array or object equality as of now):</p>
+<pre class="prettyprint source lang-js"><code>dbInstance.table(&quot;newtable&quot;).find({ firstName: &quot;ABC&quot; }); // [ { ... }]
+</code></pre>
+<p>To find without any filters, you can pass an empty object or no filter object at all.</p>
+<pre class="prettyprint source lang-js"><code>dbInstance.table(&quot;newtable&quot;).find({}); // Technically the same as .get
+dbInstance.table(&quot;newtable&quot;).find(); // Technically the same as .get
+
+// To find by id. Simply include it.
+dbInstance.table(&quot;newtable&quot;).find({ entryId: 123 });
+</code></pre>
+<h4>Updating Data</h4>
+<p>To update a set of values fetched from filters. Use the <code>findAndUpdate</code> method.</p>
+<pre class="prettyprint source lang-js"><code>dbInstance.table(&quot;newtable&quot;).findAndUpdate(filters, { ...updates });
+</code></pre>
+<p>This method by default only <strong>updates the first entry it finds matching the filters</strong>, in order to update all the entries, pass <code>false</code> as the last paramter.</p>
+<pre class="prettyprint source lang-js"><code>dbInstance.table(&quot;newtable&quot;).findAndUpdate(filters, { ...updates }, false);
+</code></pre>
+<p>To update at a specific index in the contents, use the <code>updateAt</code> function.</p>
+<pre class="prettyprint source lang-js"><code>dbInstance.table(&quot;newtable&quot;).updateAt(entryIndex, { ...updates });
+</code></pre>
+<h4>Deleting Data</h4>
+<p>To delete data that matches a filter. Use the <code>delete</code> method.</p>
+<pre class="prettyprint source lang-js"><code>dbInstance.table(&quot;newtable&quot;).delete(filters);
+</code></pre>
+<p>This method, just like the <code>findAndUpdate</code> method, <strong>deletes only the the first entry it finds matching the filters</strong>. To override this behaviour, pass <code>false</code> as the final argument to the function.</p>
+<pre class="prettyprint source lang-js"><code>dbInstance.table(&quot;newtable&quot;).delete(filters, false);
+</code></pre>
+<h2>Contribution</h2>
+<p>This project is extremely naive at this stage, and any contibutions or suggestions would be highly appreciated.</p>
+<p>For contributing to the code, simply fork this repository, make the changes you may want to in a new branch and create a pull request for it.</p>
+<p>For making any suggestions, read the <a href="#suggestions-issues-and-bugs">Issues and Bugs</a> section.</p>
+<h2>Suggestions, Issues and Bugs</h2>
+<p>For any issues related to this project, simply raise an issue in the repository and I will respond quickly.</p></article>
+    </section>
+
+
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="db.html">db</a></li><li><a href="Table.html">Table</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createDatabase">createDatabase</a></li><li><a href="global.html#generateUniqueId">generateUniqueId</a></li><li><a href="global.html#getDatabase">getDatabase</a></li><li><a href="global.html#writeDatabase">writeDatabase</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Thu Oct 08 2020 12:54:25 GMT+0530 (India Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
