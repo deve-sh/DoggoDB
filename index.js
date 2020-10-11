@@ -22,22 +22,22 @@ let reservedFieldNames = ["entryId"];
 let reservedFilters = ["$and", "$or"];
 
 /**
-*	Gets the database with dbName.
-*	@param {string} dbName The name of the database.
-*	@return {string} The serialized/stringified database data in localStorage.
-*/
+ *	Gets the database with dbName.
+ *	@param {string} dbName The name of the database.
+ *	@return {string} The serialized/stringified database data in localStorage.
+ */
 function getDatabase(dbName) {
 	return databaseScope.getItem(dbName);
 }
 
 /**
-*	Creates a new database with dbName.
-*	Doesn't allow overwriting the previously existing one.
-*	@param {string} dbName - The name of the database.
-*	@return {undefined}
-*/
+ *	Creates a new database with dbName.
+ *	Doesn't allow overwriting the previously existing one.
+ *	@param {string} dbName - The name of the database.
+ *	@return {undefined}
+ */
 function createDatabase(dbName) {
-	if(databaseScope.getItem(dbName))
+	if (databaseScope.getItem(dbName))
 		throw new Error("Database with that name already exists.");
 
 	return databaseScope.setItem(
@@ -51,22 +51,22 @@ function createDatabase(dbName) {
 }
 
 /**
-*	Serializes an object and writes it to a database in localStorage.
-*	@param {string} dbName - The name of the database to write to.
-*	@param {object} databaseObject - The object to serialize and write.
-*	@return {undefined}
-*/
+ *	Serializes an object and writes it to a database in localStorage.
+ *	@param {string} dbName - The name of the database to write to.
+ *	@param {object} databaseObject - The object to serialize and write.
+ *	@return {undefined}
+ */
 function writeDatabase(dbName, databaseObject) {
 	return databaseScope.setItem(dbName, serialize(databaseObject));
 }
 
 /**
-*	The main database driver.
-*	@constructor
-*	@param { string } dbName - The name of the database to initialize. Connects to an existing database if localStorage already has it.
-*	@param { object } [listeners] - Object that contains functions that fire on certain events such as 'onChange'.
-*	@return { db } databaseInstance - The object that contains all data about the database that has been initialized.
-*/
+ *	The main database driver.
+ *	@constructor
+ *	@param { string } dbName - The name of the database to initialize. Connects to an existing database if localStorage already has it.
+ *	@param { object } [listeners] - Object that contains functions that fire on certain events such as 'onChange'.
+ *	@return { db } databaseInstance - The object that contains all data about the database that has been initialized.
+ */
 function db(
 	dbName,
 	listeners = {
@@ -203,28 +203,57 @@ function db(
 		return this.createDBObjectToReturn();
 	};
 
-	this.find = function(filters) {
-		if (
-			this.activeTable &&
-			this.activeTable.contents &&
-			this.activeTable.contents.length &&
-			filters &&
-			Object.keys(filters).length
-		) {
-			// Code to find a result set based on filters.
-			let resultSet = [];
-			for (let row of this.activeTable.contents) {
-				let allFiltersMatch = true;
-				for (let filter in filters) {
-					if (!(filter in row) || row[filter] != filters[filter])
-						allFiltersMatch = false;
+	this.find = function(
+		filters,
+		limiters = {
+			offset: 0,
+			limit: null,
+		}
+	) {
+		try {
+			let { limit, offset } = limiters;
+
+			if (!limit) limit = Infinity;
+			if (!offset) offset = 0;
+
+			if (
+				this.activeTable &&
+				this.activeTable.contents &&
+				this.activeTable.contents.length &&
+				filters &&
+				Object.keys(filters).length
+			) {
+				// Code to find a result set based on filters.
+				let resultSet = [],
+					index = 0;
+				for (let row of this.activeTable.contents) {
+					if (index >= offset && resultSet.length <= limit) {
+						let allFiltersMatch = true;
+						for (let filter in filters) {
+							if (
+								!(filter in row) ||
+								row[filter] != filters[filter]
+							)
+								allFiltersMatch = false;
+						}
+						if (allFiltersMatch) resultSet.push(row);
+					}
+					index++;
 				}
-				if (allFiltersMatch) resultSet.push(row);
+				return resultSet;
+			} else if (this.activeTable && this.activeTable.contents) {
+				if (offset || limit !== Infinity) {
+					return [...this.activeTable.contents].slice(
+						offset,
+						offset + limit
+					);
+				}
+				return this.activeTable.contents;
 			}
-			return resultSet;
-		} else if (this.activeTable && this.activeTable.contents)
-			return this.activeTable.contents;
-		return [];
+			return [];
+		} catch (err) {
+			throw new Error(err.message);
+		}
 	};
 
 	this.findAndUpdate = function(filters, updates, updateOnlyOne = true) {
@@ -359,16 +388,15 @@ function db(
 // Abstraction instances.
 
 /**
-*	The table class.
-*	@constructor
-*	@param { string } tableName - The name of the table to create.
-*	@return { Table } tableInstance - Contains the contents, tableName, createdAt { Date} and updatedAt { Date }.
-*/
+ *	The table class.
+ *	@constructor
+ *	@param { string } tableName - The name of the table to create.
+ *	@return { Table } tableInstance - Contains the contents, tableName, createdAt { Date} and updatedAt { Date }.
+ */
 class Table {
 	constructor(tableName) {
-		if(!tableName)
-			throw new Error("No table name provided.");
-		
+		if (!tableName) throw new Error("No table name provided.");
+
 		this.contents = [];
 		this.tableName = tableName;
 		this.createdAt = new Date();
@@ -379,13 +407,13 @@ class Table {
 /* Other helper functions. */
 
 /**
-* Generates a unique id to be used in fields such as 'entryId'.
-* @return { Number } A sufficiently random number that can be used as a unique Id.
-*/
+ * Generates a unique id to be used in fields such as 'entryId'.
+ * @return { Number } A sufficiently random number that can be used as a unique Id.
+ */
 function generateUniqueId() {
 	return parseInt(
 		new Date().getTime() + Math.random() * 10 + Math.random() * 10
 	);
-};
+}
 
 module.exports = { db };
