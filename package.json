@@ -22,5 +22,6 @@
   "bugs": {
     "url": "https://github.com/deve-sh/DoggoDB/issues"
   },
-  "homepage": "https://github.com/deve-sh/DoggoDB#readme"
+  "homepage": "https://github.com/deve-sh/DoggoDB#readme",
+  "publishConfig": { "registry": "https://npm.pkg.github.com/" }
 }
