@@ -1,6 +1,6 @@
 {
   "name": "doggodb",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A lightweight dependencyless database layer built on  top of localStorage for the browser.",
   "main": "dist/doggodb.min.js",
   "scripts": {
@@ -22,6 +22,5 @@
   "bugs": {
     "url": "https://github.com/deve-sh/DoggoDB/issues"
   },
-  "homepage": "https://github.com/deve-sh/DoggoDB#readme",
-  "publishConfig": { "registry": "https://npm.pkg.github.com/" }
+  "homepage": "https://github.com/deve-sh/DoggoDB#readme"
 }
