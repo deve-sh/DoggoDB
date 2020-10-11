@@ -65,12 +65,15 @@ To download from a CDN:
 
 ```html
 <!-- Head -->
-<script type="text/javascript" src="https://unpkg.com/doggodb/dist/doggodb.min.js"></script>
+<script
+    type="text/javascript"
+    src="https://unpkg.com/doggodb/dist/doggodb.min.js"
+></script>
 
 <!-- Body Bottom -->
 <script type="text/javascript" defer>
-	// The 'db' function is inside the 'doggodb' object after importing from CDN.
-	const dbInstance = new doggodb.db("databaseName");
+    // The 'db' function is inside the 'doggodb' object after importing from CDN.
+    const dbInstance = new doggodb.db("databaseName");
 </script>
 ```
 
@@ -99,8 +102,8 @@ Add data to a table (Right now data container can only be an object, but the fie
 
 ```js
 dbInstance.table("newtable").add({
-	firstName: "ABC",
-	lastName: "XYZ",
+    firstName: "ABC",
+    lastName: "XYZ",
 });
 ```
 
@@ -130,6 +133,17 @@ dbInstance.table("newtable").find(); // Technically the same as .get
 
 // To find by id. Simply include it.
 dbInstance.table("newtable").find({ entryId: 123 });
+```
+
+To offset and limit data, pass in an object with the `offset` and `limit` properties.
+
+- `offset` - The index to start counting entries from.
+- `limit` - The number of entires to limit in the result set.
+
+```js
+dbInstance.table("newtable").find({ field: "value" }, { limit: 5 });
+dbInstance.table("newtable").find({ field: "value" }, { offset: 2, limit: 3 });
+dbInstance.table("newtable").find({ field: "value" }, { offset: 4 });
 ```
 
 #### Updating Data

@@ -203,6 +203,12 @@ function db(
 		return this.createDBObjectToReturn();
 	};
 
+	/**
+		Returns a result set from the active table.
+
+		@param { Object } filters - Key value pair to query a table by.
+		@param { Object } [limiters] - { offset: Number, limit: Number }
+	*/
 	this.find = function(
 		filters,
 		limiters = {
