@@ -236,10 +236,21 @@ function db(
 					if (index >= offset && resultSet.length <= limit) {
 						let allFiltersMatch = true;
 						for (let filter in filters) {
-							if (
-								!(filter in row) ||
-								row[filter] != filters[filter]
-							)
+							if (!(filter in row)) allFiltersMatch = false;
+							else if (
+								filter in reservedFilters &&
+								typeof filters[filter] === "object"
+							) {
+								if (
+									!verifyByCustomOperation(
+										row,
+										Object.keys(filters[filter])[0],
+										reservedFilters[filter],
+										Object.values(filters[filter])[0]
+									)
+								)
+									allFiltersMatch = false;
+							} else if (row[filter] != filters[filter])
 								allFiltersMatch = false;
 						}
 						if (allFiltersMatch) resultSet.push(row);
