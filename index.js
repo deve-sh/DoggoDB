@@ -18,8 +18,8 @@ let errors = {
 	NOTAVALIDOBJECT: "Not a valid object for storage.",
 };
 
-let reservedFieldNames = ["entryId"];
-let reservedFilters = ["$and", "$or"];
+let reservedFieldNames = { entryId: true };
+let reservedFilters = { $and: "and", $or: "or", $not: "not", $in: "in" };
 
 /**
  *	Gets the database with dbName.
@@ -272,9 +272,9 @@ function db(
 		) {
 			// Check if the user is not updating any reserved fields.
 			if (updates && Object.keys(updates).length > 0) {
-				for (let update in updates) {
-					if (reservedFieldNames.includes(update))
-						delete updates[update];
+				for (let fieldToUpdate in updates) {
+					if (fieldToUpdate in reservedFieldNames)
+						delete updates[fieldToUpdate];
 				}
 			}
 
@@ -322,9 +322,9 @@ function db(
 		) {
 			// Check if the user is not updating any reserved fields.
 			if (updates && Object.keys(updates).length > 0) {
-				for (let update in updates)
-					if (reservedFieldNames.includes(update))
-						delete updates[update];
+				for (let fieldToUpdate in updates)
+					if (fieldToUpdate in reservedFieldNames)
+						delete updates[fieldToUpdate];
 			}
 
 			this.activeTable.contents[rowIndex] = {
@@ -420,6 +420,28 @@ function generateUniqueId() {
 	return parseInt(
 		new Date().getTime() + Math.random() * 10 + Math.random() * 10
 	);
+}
+
+/**
+ * Function to check if a row in a table matches a specified operation or not. (Operations such as and, or, in, not etc).
+ * @param { Object } row - The object represnting a row in a database table.
+ * @param { field } field - Name of field to verify operation on.
+ * @param { * } value - The value to compare with, type depends on the operation.
+ * @return { Boolean }
+ */
+function verifyByCustomOperation(row, field, operation, value) {
+	switch (operation) {
+		case "add":
+			return false;
+		case "or":
+			return false;
+		case "in":
+			return false;
+		case "not":
+			return false;
+		default:
+			throw new Error("Invalid/Unsupported operation.");
+	}
 }
 
 module.exports = { db };
