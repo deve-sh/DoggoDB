@@ -426,19 +426,25 @@ function generateUniqueId() {
  * Function to check if a row in a table matches a specified operation or not. (Operations such as and, or, in, not etc).
  * @param { Object } row - The object represnting a row in a database table.
  * @param { field } field - Name of field to verify operation on.
- * @param { * } value - The value to compare with, type depends on the operation.
+ * @param { * } valueToValidateOn - The value to compare with, type depends on the operation.
  * @return { Boolean }
  */
-function verifyByCustomOperation(row, field, operation, value) {
+function verifyByCustomOperation(row, field, operation, valueToValidateOn) {
+	if (!row || typeof row !== "Object") throw new Error("Invalid row type.");
+
 	switch (operation) {
-		case "add":
+		case "and":
 			return false;
 		case "or":
 			return false;
 		case "in":
-			return false;
+			if (!valueToValidateOn || !Array.isArray(valueToValidateOn))
+				throw new Error(
+					"value to check field value 'in' is not an iterable."
+				);
+			return valueToValidateOn.includes(row[field]);
 		case "not":
-			return false;
+			return row[field] != valueToValidateOn;
 		default:
 			throw new Error("Invalid/Unsupported operation.");
 	}
