@@ -19,7 +19,15 @@ let errors = {
 };
 
 let reservedFieldNames = { entryId: true };
-let reservedFilters = { $and: "and", $or: "or", $not: "not", $in: "in" };
+let reservedFilters = {
+	$and: "and",
+	$or: "or",
+	$not: "not",
+	$in: "in",
+	$notIn: "not-in",
+	$includes: "includes",
+	$notIncludes: "not-includes",
+};
 
 /**
  *	Gets the database with dbName.
@@ -454,8 +462,18 @@ function verifyByCustomOperation(row, field, operation, valueToValidateOn) {
 					"value to check field value 'in' is not an iterable."
 				);
 			return valueToValidateOn.includes(row[field]);
+		case "not-in":
+			if (!valueToValidateOn || !Array.isArray(valueToValidateOn))
+				throw new Error(
+					"value to check field value 'in' is not an iterable."
+				);
+			return !valueToValidateOn.includes(row[field]);
 		case "not":
 			return row[field] != valueToValidateOn;
+		case "includes":
+			return row[field].includes(valueToValidateOn);
+		case "not-includes":
+			return !row[field].includes(valueToValidateOn);
 		default:
 			throw new Error("Invalid/Unsupported operation.");
 	}
