@@ -75,103 +75,94 @@ function writeDatabase(dbName, databaseObject) {
  *	@param { object } [listeners] - Object that contains functions that fire on certain events such as 'onChange'.
  *	@return { db } databaseInstance - The object that contains all data about the database that has been initialized.
  */
-function db(
-	dbName,
-	listeners = {
-		onChange: null,
-	}
-) {
-	if (!dbName) throw new Error(errors.NODBNAME);
+class db {
+	constructor(dbName, listeners = { onChange: null }) {
+		if (!dbName) throw new Error(errors.NODBNAME);
 
-	let persistedDatabase = getDatabase(dbName);
-	let unserializedDatabase = {
-		tables: {},
-		createdAt: new Date(),
-		updatedAt: new Date(),
-	};
-
-	if (persistedDatabase)
-		unserializedDatabase = unserialize(persistedDatabase);
-
-	if (!unserializedDatabase) createDatabase(dbName); // Database doesn't exist.
-
-	this.createDBObjectToReturn = function() {
-		return {
-			database: this.databaseObject,
-			table: this.table,
-			list: this.list,
-			activeTable: this.activeTable,
-			create: this.create,
-			save: this.save,
-			drop: this.drop,
-			add: this.add,
-			find: this.find,
-			get: this.get,
-			findAndUpdate: this.findAndUpdate,
-			delete: this.delete,
-			updateAt: this.updateAt,
+		let persistedDatabase = getDatabase(dbName);
+		let unserializedDatabase = {
+			tables: {},
+			createdAt: new Date(),
+			updatedAt: new Date(),
 		};
-	};
 
-	this.databaseObject = unserializedDatabase;
-	this.activeTable = null;
-	this.databaseName = dbName;
+		if (persistedDatabase)
+			unserializedDatabase = unserialize(persistedDatabase);
 
-	// Event Listeners
-	this.onChange = null;
+		if (!unserializedDatabase) createDatabase(dbName); // Database doesn't exist.
 
-	if (listeners && typeof listeners === "object") {
-		this.onChange = listeners.onChange || null;
-		// Add more listeners as required.
+		this.database = unserializedDatabase;
+		this.activeTable = null;
+		this.databaseName = dbName;
+
+		// Event Listeners
+		this.onChange = null;
+
+		if (listeners && typeof listeners === "object") {
+			this.onChange = listeners.onChange || null;
+			// Add more listeners as required.
+		}
+
+		this.table = this.table.bind(this);
+		this.list = this.list.bind(this);
+		this.create = this.create.bind(this);
+		this.save = this.save.bind(this);
+		this.drop = this.drop.bind(this);
+		this.get = this.get.bind(this);
+		this.find = this.find.bind(this);
+		this.add = this.add.bind(this);
+		this.findAndUpdate = this.findAndUpdate.bind(this);
+		this.delete = this.delete.bind(this);
+		this.updateAt = this.updateAt.bind(this);
 	}
 
-	this.save = function() {
-		writeDatabase(this.databaseName, this.databaseObject);
-		this.databaseObject.updatedAt = new Date();
+	save() {
+		writeDatabase(this.databaseName, this.database);
+		this.database.updatedAt = new Date();
 		if (this.onChange && typeof this.onChange === "function")
-			this.onChange(this.databaseObject);
-	};
+			this.onChange(this.database);
+	}
 
 	// Operations.
-	this.table = function(tableName) {
+	table(tableName) {
 		if (!tableName) throw new Error(errors.NOTABLENAME);
 
-		if (this.databaseObject.tables[tableName])
-			this.activeTable = this.databaseObject.tables[tableName];
+		if (this.database.tables[tableName])
+			this.activeTable = this.database.tables[tableName];
 		else this.create(tableName);
 
-		return this.createDBObjectToReturn();
-	};
+		return this;
+	}
 
-	this.list = function() {
+	list() {
 		// List all tables in the database along with their contents and metadata.
-		return this.databaseObject.tables;
-	};
+		return this.database.tables;
+	}
 
-	this.create = function(tableName) {
+	create(tableName) {
 		// Function to create a new table.
 		if (!tableName) throw new Error(errors.NOTABLENAME);
 
-		if (tableName in this.databaseObject.tables)
+		if (tableName in this.database.tables)
 			throw new Error(errors.TABLEALREADYEXISTS);
 
 		this.activeTable = new Table(tableName);
-		this.databaseObject.tables[tableName] = this.activeTable;
+		this.database.tables[tableName] = this.activeTable;
 
 		this.save();
 
-		return this.createDBObjectToReturn();
-	};
+		return this;
+	}
 
-	this.drop = function(tableName) {
+	drop(tableName) {
 		// Code to drop an entire table.
 		// If no tableName is passed, it drops the active table if any.
 		if (tableName) {
 			if (this.activeTable && tableName === this.activeTable.tableName)
 				this.activeTable = null;
 
-			if (tableName in this.databaseObject.tables)
-				delete this.databaseObject.tables[tableName];
+			if (tableName in this.database.tables)
+				delete this.database.tables[tableName];
 		} else {
 			let tableNameToDelete = null;
 
@@ -180,20 +171,20 @@ function db(
 				this.activeTable = null;
 			}
 
-			if (tableNameToDelete in this.databaseObject)
-				delete this.databaseObject[tableNameToDelete];
+			if (tableNameToDelete in this.database)
+				delete this.database[tableNameToDelete];
 		}
 
 		this.save();
-		return this.createDBObjectToReturn();
-	};
+		return this;
+	}
 
-	this.get = function() {
+	get() {
 		if (this.activeTable) return this.activeTable.contents; // Get contents of the entire table.
 		throw new Error(errors.NOACTIVETABLE);
-	};
+	}
 
-	this.add = function(newRow) {
+	add(newRow) {
 		if (!newRow) throw new Error(errors.NODATAPROVIDED);
 		if (!this.activeTable) throw new Error(errors.NOACTIVETABLE);
 		if (typeof newRow !== "object" || !Object.keys(newRow).length)
@@ -204,12 +195,12 @@ function db(
 			...newRow,
 		});
 		this.activeTable.updatedAt = new Date();
-		this.databaseObject[this.activeTable.tableName] = this.activeTable;
+		this.database[this.activeTable.tableName] = this.activeTable;
 
 		this.save();
 
-		return this.createDBObjectToReturn();
-	};
+		return this;
+	}
 
 	/**
 		Returns a result set from the active table.
@@ -217,7 +208,7 @@ function db(
 		@param { Object } filters - Key value pair to query a table by.
 		@param { Object } [limiters] - { offset: Number, limit: Number }
 	*/
-	this.find = function(
+	find(
 		filters,
 		limiters = {
 			offset: 0,
@@ -279,9 +270,9 @@ function db(
 		} catch (err) {
 			throw new Error(err.message);
 		}
-	};
+	}
 
-	this.findAndUpdate = function(filters, updates, updateOnlyOne = true) {
+	findAndUpdate(filters, updates, updateOnlyOne = true) {
 		// Function to update a resultset in the database.
 		if (
 			this.activeTable &&
@@ -320,14 +311,14 @@ function db(
 				if (updateOnlyOne) break;
 			}
 
-			this.databaseObject[this.activeTable.tableName] = this.activeTable;
+			this.database[this.activeTable.tableName] = this.activeTable;
 			this.save();
 		}
 
-		return this.createDBObjectToReturn();
-	};
+		return this;
+	}
 
-	this.updateAt = function(rowIndex, updates) {
+	updateAt(rowIndex, updates) {
 		// Function to update a row in a table at a certain index.
 		if (!this.activeTable) throw new Error(erors.NOACTIVETABLE);
 
@@ -352,14 +343,14 @@ function db(
 			};
 			this.activeTable.updatedAt = new Date();
 
-			this.databaseObject[this.activeTable.tableName] = this.activeTable;
+			this.database[this.activeTable.tableName] = this.activeTable;
 			this.save();
 		}
 
-		return this.createDBObjectToReturn();
-	};
+		return this;
+	}
 
-	this.delete = function(filters, deleteOnlyOne = true) {
+	delete(filters, deleteOnlyOne = true) {
 		// Function to delete a row.
 		if (
 			this.activeTable &&
@@ -386,28 +377,12 @@ function db(
 				if (deleteOnlyOne) break;
 			}
 
-			this.databaseObject[this.activeTable.tableName] = this.activeTable;
+			this.database[this.activeTable.tableName] = this.activeTable;
 			this.save();
 		}
 
-		return this.createDBObjectToReturn();
-	};
-
-	this.table = this.table.bind(this);
-	this.list = this.list.bind(this);
-	this.create = this.create.bind(this);
-	this.save = this.save.bind(this);
-	this.drop = this.drop.bind(this);
-	this.get = this.get.bind(this);
-	this.find = this.find.bind(this);
-	this.add = this.add.bind(this);
-	this.findAndUpdate = this.findAndUpdate.bind(this);
-	this.delete = this.delete.bind(this);
-	this.updateAt = this.updateAt.bind(this);
-
-	this.createDBObjectToReturn = this.createDBObjectToReturn.bind(this);
-
-	return this.createDBObjectToReturn();
+		return this;
+	}
 }
 
 // Abstraction instances.

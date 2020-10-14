@@ -4,6 +4,7 @@
   "description": "A lightweight dependencyless database layer built on  top of localStorage for the browser.",
   "main": "dist/doggodb.min.js",
   "scripts": {
+    "commit": "npm run bundle && git add . && git commit",
     "test": "echo \"Error: no test specified\" && exit 1",
     "bundle": "webpack index.js",
     "document": "jsdoc -c jsdoc-conf.json -d docs"
