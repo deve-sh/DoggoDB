@@ -235,8 +235,7 @@ class db {
 					if (index >= offset && resultSet.length <= limit) {
 						let allFiltersMatch = true;
 						for (let filter in filters) {
-							if (!(filter in row)) allFiltersMatch = false;
-							else if (
+							if (
 								filter in reservedFilters &&
 								typeof filters[filter] === "object"
 							) {
@@ -249,7 +248,9 @@ class db {
 									)
 								)
 									allFiltersMatch = false;
-							} else if (row[filter] != filters[filter])
+							} else if (!(filter in row))
+								allFiltersMatch = false;
+							else if (row[filter] != filters[filter])
 								allFiltersMatch = false;
 						}
 						if (allFiltersMatch) resultSet.push(row);
@@ -424,7 +425,9 @@ function generateUniqueId() {
  * @return { Boolean }
  */
 function verifyByCustomOperation(row, field, operation, valueToValidateOn) {
-	if (!row || typeof row !== "Object") throw new Error("Invalid row type.");
+	if (!row || typeof row !== "object") throw new Error("Invalid row type.");
+
+	if(!row[field]) return false;
 
 	switch (operation) {
 		case "and":
