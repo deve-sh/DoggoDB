@@ -14,6 +14,7 @@ There are plans to expand to full-fledged file based database storage on the ser
     -   [Adding Data to Tables](#adding-data-to-tables)
     -   [Retreiving Data](#retreiving-data)
     -   [Finding And Querying Data](#finding-and-querying-data)
+    -   [Advanced Querying Capabilities](#advanced-querying-capabilities)
     -   [Updating Data](#updating-data)
     -   [Deleting Data](#deleting-data)
 -   [Contribution](#contribution)
@@ -145,6 +146,52 @@ dbInstance.table("newtable").find({ field: "value" }, { limit: 5 });
 dbInstance.table("newtable").find({ field: "value" }, { offset: 2, limit: 3 });
 dbInstance.table("newtable").find({ field: "value" }, { offset: 4 });
 ```
+
+#### Advanced Querying Capabilities
+
+On top of the limits and offset methods, the library also supports advanced querying capabilities such as 'Array Membership' and other operations. They can be acheived by structuring your filter objects in specific ways.
+
+Right now, the following are available:
+
+- `$not`: Checks if a value in a field is not the provided value.
+
+The following two are only applicable for fields that are of the type Arrays:
+- `$includes`: Checks if a field's value includes a certain value.
+- `$notIncludes`: Checks if a field's value includes a certain value or not.
+
+The remaining are also array-membership operations.
+- `$in`:
+- `$notIn`: Checks if a field's value is not present in an Array value. 
+
+**Usage**:
+
+```js
+dbInstance.table("newtable").find({ 
+    $not: { field: 1 }  // Will check if the value for "field" is not equal to 1.
+});
+
+dbInstance.table("newtable").find({ 
+    $includes: { field: 1 } // Will check if the array at "field" includes 1 or not.
+});
+
+dbInstance.table("newtable").find({ 
+    $notIncludes: { field: 1 }
+});
+
+dbInstance.table("newtable").find({ 
+    $in: { field: [ 1, 2, 3] }
+});
+
+dbInstance.table("newtable").find({ 
+    $notIn: { field: [ 1, 2, 3] }
+});
+```
+
+```
+Support for Or Queries is on the way.
+```
+
+The above advanced querying capabilities are supported now for updating and deleting data as well.
 
 #### Updating Data
 

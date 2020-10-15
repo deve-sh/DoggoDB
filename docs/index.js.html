@@ -46,8 +46,17 @@ let errors = {
 	NOTAVALIDOBJECT: "Not a valid object for storage.",
 };
 
-let reservedFieldNames = ["entryId"];
-let reservedFilters = ["$and", "$or"];
+let reservedFieldNames = { entryId: true };
+let reservedFilters = {
+	$not: "not",
+	$in: "in",
+	$notIn: "not-in",
+	$includes: "includes",
+	$notIncludes: "not-includes",
+};
+let reservedConditionals = {
+	$or: "or",
+};
 
 /**
  *	Gets the database with dbName.
@@ -95,103 +104,94 @@ function writeDatabase(dbName, databaseObject) {
  *	@param { object } [listeners] - Object that contains functions that fire on certain events such as 'onChange'.
  *	@return { db } databaseInstance - The object that contains all data about the database that has been initialized.
  */
-function db(
-	dbName,
-	listeners = {
-		onChange: null,
-	}
-) {
-	if (!dbName) throw new Error(errors.NODBNAME);
+class db {
+	constructor(dbName, listeners = { onChange: null }) {
+		if (!dbName) throw new Error(errors.NODBNAME);
 
-	let persistedDatabase = getDatabase(dbName);
-	let unserializedDatabase = {
-		tables: {},
-		createdAt: new Date(),
-		updatedAt: new Date(),
-	};
-
-	if (persistedDatabase)
-		unserializedDatabase = unserialize(persistedDatabase);
-
-	if (!unserializedDatabase) createDatabase(dbName); // Database doesn't exist.
-
-	this.createDBObjectToReturn = function() {
-		return {
-			database: this.databaseObject,
-			table: this.table,
-			list: this.list,
-			activeTable: this.activeTable,
-			create: this.create,
-			save: this.save,
-			drop: this.drop,
-			add: this.add,
-			find: this.find,
-			get: this.get,
-			findAndUpdate: this.findAndUpdate,
-			delete: this.delete,
-			updateAt: this.updateAt,
+		let persistedDatabase = getDatabase(dbName);
+		let unserializedDatabase = {
+			tables: {},
+			createdAt: new Date(),
+			updatedAt: new Date(),
 		};
-	};
 
-	this.databaseObject = unserializedDatabase;
-	this.activeTable = null;
-	this.databaseName = dbName;
+		if (persistedDatabase)
+			unserializedDatabase = unserialize(persistedDatabase);
 
-	// Event Listeners
-	this.onChange = null;
+		if (!unserializedDatabase) createDatabase(dbName); // Database doesn't exist.
 
-	if (listeners &amp;&amp; typeof listeners === "object") {
-		this.onChange = listeners.onChange || null;
-		// Add more listeners as required.
+		this.database = unserializedDatabase;
+		this.activeTable = null;
+		this.databaseName = dbName;
+
+		// Event Listeners
+		this.onChange = null;
+
+		if (listeners &amp;&amp; typeof listeners === "object") {
+			this.onChange = listeners.onChange || null;
+			// Add more listeners as required.
+		}
+
+		this.table = this.table.bind(this);
+		this.list = this.list.bind(this);
+		this.create = this.create.bind(this);
+		this.save = this.save.bind(this);
+		this.drop = this.drop.bind(this);
+		this.get = this.get.bind(this);
+		this.find = this.find.bind(this);
+		this.add = this.add.bind(this);
+		this.findAndUpdate = this.findAndUpdate.bind(this);
+		this.delete = this.delete.bind(this);
+		this.updateAt = this.updateAt.bind(this);
 	}
 
-	this.save = function() {
-		writeDatabase(this.databaseName, this.databaseObject);
-		this.databaseObject.updatedAt = new Date();
+	save() {
+		writeDatabase(this.databaseName, this.database);
+		this.database.updatedAt = new Date();
 		if (this.onChange &amp;&amp; typeof this.onChange === "function")
-			this.onChange(this.databaseObject);
-	};
+			this.onChange(this.database);
+	}
 
 	// Operations.
-	this.table = function(tableName) {
+	table(tableName) {
 		if (!tableName) throw new Error(errors.NOTABLENAME);
 
-		if (this.databaseObject.tables[tableName])
-			this.activeTable = this.databaseObject.tables[tableName];
+		if (this.database.tables[tableName])
+			this.activeTable = this.database.tables[tableName];
 		else this.create(tableName);
 
-		return this.createDBObjectToReturn();
-	};
+		return this;
+	}
 
-	this.list = function() {
+	list() {
 		// List all tables in the database along with their contents and metadata.
-		return this.databaseObject.tables;
-	};
+		return this.database.tables;
+	}
 
-	this.create = function(tableName) {
+	create(tableName) {
 		// Function to create a new table.
 		if (!tableName) throw new Error(errors.NOTABLENAME);
 
-		if (tableName in this.databaseObject.tables)
+		if (tableName in this.database.tables)
 			throw new Error(errors.TABLEALREADYEXISTS);
 
 		this.activeTable = new Table(tableName);
-		this.databaseObject.tables[tableName] = this.activeTable;
+		this.database.tables[tableName] = this.activeTable;
 
 		this.save();
 
-		return this.createDBObjectToReturn();
-	};
+		return this;
+	}
 
-	this.drop = function(tableName) {
+	drop(tableName) {
 		// Code to drop an entire table.
 		// If no tableName is passed, it drops the active table if any.
 		if (tableName) {
 			if (this.activeTable &amp;&amp; tableName === this.activeTable.tableName)
 				this.activeTable = null;
 
-			if (tableName in this.databaseObject.tables)
-				delete this.databaseObject.tables[tableName];
+			if (tableName in this.database.tables)
+				delete this.database.tables[tableName];
 		} else {
 			let tableNameToDelete = null;
 
@@ -200,20 +200,20 @@ function db(
 				this.activeTable = null;
 			}
 
-			if (tableNameToDelete in this.databaseObject)
-				delete this.databaseObject[tableNameToDelete];
+			if (tableNameToDelete in this.database)
+				delete this.database[tableNameToDelete];
 		}
 
 		this.save();
-		return this.createDBObjectToReturn();
-	};
+		return this;
+	}
 
-	this.get = function() {
+	get() {
 		if (this.activeTable) return this.activeTable.contents; // Get contents of the entire table.
 		throw new Error(errors.NOACTIVETABLE);
-	};
+	}
 
-	this.add = function(newRow) {
+	add(newRow) {
 		if (!newRow) throw new Error(errors.NODATAPROVIDED);
 		if (!this.activeTable) throw new Error(errors.NOACTIVETABLE);
 		if (typeof newRow !== "object" || !Object.keys(newRow).length)
@@ -224,12 +224,12 @@ function db(
 			...newRow,
 		});
 		this.activeTable.updatedAt = new Date();
-		this.databaseObject[this.activeTable.tableName] = this.activeTable;
+		this.database[this.activeTable.tableName] = this.activeTable;
 
 		this.save();
 
-		return this.createDBObjectToReturn();
-	};
+		return this;
+	}
 
 	/**
 		Returns a result set from the active table.
@@ -237,7 +237,7 @@ function db(
 		@param { Object } filters - Key value pair to query a table by.
 		@param { Object } [limiters] - { offset: Number, limit: Number }
 	*/
-	this.find = function(
+	find(
 		filters,
 		limiters = {
 			offset: 0,
@@ -265,6 +265,19 @@ function db(
 						let allFiltersMatch = true;
 						for (let filter in filters) {
 							if (
+								filter in reservedFilters &amp;&amp;
+								typeof filters[filter] === "object"
+							) {
+								if (
+									!verifyByCustomOperation(
+										row,
+										Object.keys(filters[filter])[0],
+										reservedFilters[filter],
+										Object.values(filters[filter])[0]
+									)
+								)
+									allFiltersMatch = false;
+							} else if (
 								!(filter in row) ||
 								row[filter] != filters[filter]
 							)
@@ -288,9 +301,9 @@ function db(
 		} catch (err) {
 			throw new Error(err.message);
 		}
-	};
+	}
 
-	this.findAndUpdate = function(filters, updates, updateOnlyOne = true) {
+	findAndUpdate(filters, updates, updateOnlyOne = true) {
 		// Function to update a resultset in the database.
 		if (
 			this.activeTable &amp;&amp;
@@ -300,9 +313,9 @@ function db(
 		) {
 			// Check if the user is not updating any reserved fields.
 			if (updates &amp;&amp; Object.keys(updates).length > 0) {
-				for (let update in updates) {
-					if (reservedFieldNames.includes(update))
-						delete updates[update];
+				for (let fieldToUpdate in updates) {
+					if (fieldToUpdate in reservedFieldNames)
+						delete updates[fieldToUpdate];
 				}
 			}
 
@@ -316,7 +329,23 @@ function db(
 
 				if (filters &amp;&amp; Object.keys(filters).length > 0) {
 					for (let filter in filters) {
-						if (!(filter in row) || row[filter] != filters[filter])
+						if (
+							filter in reservedFilters &amp;&amp;
+							typeof filters[filter] === "object"
+						) {
+							if (
+								!verifyByCustomOperation(
+									row,
+									Object.keys(filters[filter])[0],
+									reservedFilters[filter],
+									Object.values(filters[filter])[0]
+								)
+							)
+								allFiltersMatch = false;
+						} else if (
+							!(filter in row) ||
+							row[filter] != filters[filter]
+						)
 							allFiltersMatch = false;
 					}
 				}
@@ -329,14 +358,14 @@ function db(
 				if (updateOnlyOne) break;
 			}
 
-			this.databaseObject[this.activeTable.tableName] = this.activeTable;
+			this.database[this.activeTable.tableName] = this.activeTable;
 			this.save();
 		}
 
-		return this.createDBObjectToReturn();
-	};
+		return this;
+	}
 
-	this.updateAt = function(rowIndex, updates) {
+	updateAt(rowIndex, updates) {
 		// Function to update a row in a table at a certain index.
 		if (!this.activeTable) throw new Error(erors.NOACTIVETABLE);
 
@@ -350,9 +379,9 @@ function db(
 		) {
 			// Check if the user is not updating any reserved fields.
 			if (updates &amp;&amp; Object.keys(updates).length > 0) {
-				for (let update in updates)
-					if (reservedFieldNames.includes(update))
-						delete updates[update];
+				for (let fieldToUpdate in updates)
+					if (fieldToUpdate in reservedFieldNames)
+						delete updates[fieldToUpdate];
 			}
 
 			this.activeTable.contents[rowIndex] = {
@@ -361,14 +390,14 @@ function db(
 			};
 			this.activeTable.updatedAt = new Date();
 
-			this.databaseObject[this.activeTable.tableName] = this.activeTable;
+			this.database[this.activeTable.tableName] = this.activeTable;
 			this.save();
 		}
 
-		return this.createDBObjectToReturn();
-	};
+		return this;
+	}
 
-	this.delete = function(filters, deleteOnlyOne = true) {
+	delete(filters, deleteOnlyOne = true) {
 		// Function to delete a row.
 		if (
 			this.activeTable &amp;&amp;
@@ -385,9 +414,26 @@ function db(
 				let allFiltersMatch = true;
 				let row = this.activeTable.contents[rowIndex];
 
-				for (let filter in filters)
-					if (!(filter in row) || row[filter] != filters[filter])
+				for (let filter in filters) {
+					if (
+						filter in reservedFilters &amp;&amp;
+						typeof filters[filter] === "object"
+					) {
+						if (
+							!verifyByCustomOperation(
+								row,
+								Object.keys(filters[filter])[0],
+								reservedFilters[filter],
+								Object.values(filters[filter])[0]
+							)
+						)
+							allFiltersMatch = false;
+					} else if (
+						!(filter in row) ||
+						row[filter] != filters[filter]
+					)
 						allFiltersMatch = false;
+				}
 
 				if (allFiltersMatch)
 					this.activeTable.contents.splice(rowIndex, 1);
@@ -395,28 +441,12 @@ function db(
 				if (deleteOnlyOne) break;
 			}
 
-			this.databaseObject[this.activeTable.tableName] = this.activeTable;
+			this.database[this.activeTable.tableName] = this.activeTable;
 			this.save();
 		}
 
-		return this.createDBObjectToReturn();
-	};
-
-	this.table = this.table.bind(this);
-	this.list = this.list.bind(this);
-	this.create = this.create.bind(this);
-	this.save = this.save.bind(this);
-	this.drop = this.drop.bind(this);
-	this.get = this.get.bind(this);
-	this.find = this.find.bind(this);
-	this.add = this.add.bind(this);
-	this.findAndUpdate = this.findAndUpdate.bind(this);
-	this.delete = this.delete.bind(this);
-	this.updateAt = this.updateAt.bind(this);
-
-	this.createDBObjectToReturn = this.createDBObjectToReturn.bind(this);
-
-	return this.createDBObjectToReturn();
+		return this;
+	}
 }
 
 // Abstraction instances.
@@ -450,6 +480,42 @@ function generateUniqueId() {
 	);
 }
 
+/**
+ * Function to check if a row in a table matches a specified operation or not. (Operations such as and, or, in, not etc).
+ * @param { Object } row - The object represnting a row in a database table.
+ * @param { field } field - Name of field to verify operation on.
+ * @param { * } valueToValidateOn - The value to compare with, type depends on the operation.
+ * @return { Boolean }
+ */
+function verifyByCustomOperation(row, field, operation, valueToValidateOn) {
+	if (!row || typeof row !== "object") throw new Error("Invalid row type.");
+
+	if (!row[field]) return false; // If the row does not have that column, simply don't use it.
+
+	switch (operation) {
+		case "in":
+			if (!valueToValidateOn || !Array.isArray(valueToValidateOn))
+				throw new Error(
+					"value to check field value 'in' is not an iterable."
+				);
+			return valueToValidateOn.includes(row[field]);
+		case "not-in":
+			if (!valueToValidateOn || !Array.isArray(valueToValidateOn))
+				throw new Error(
+					"value to check field value 'not-in' is not an iterable."
+				);
+			return !valueToValidateOn.includes(row[field]);
+		case "not":
+			return row[field] != valueToValidateOn;
+		case "includes":
+			return row[field].includes(valueToValidateOn);
+		case "not-includes":
+			return !row[field].includes(valueToValidateOn);
+		default:
+			throw new Error("Invalid/Unsupported operation.");
+	}
+}
+
 module.exports = { db };
 </code></pre>
         </article>
@@ -461,13 +527,13 @@ module.exports = { db };
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="db.html">db</a></li><li><a href="Table.html">Table</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createDatabase">createDatabase</a></li><li><a href="global.html#generateUniqueId">generateUniqueId</a></li><li><a href="global.html#getDatabase">getDatabase</a></li><li><a href="global.html#writeDatabase">writeDatabase</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="db.html">db</a></li><li><a href="Table.html">Table</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createDatabase">createDatabase</a></li><li><a href="global.html#generateUniqueId">generateUniqueId</a></li><li><a href="global.html#getDatabase">getDatabase</a></li><li><a href="global.html#verifyByCustomOperation">verifyByCustomOperation</a></li><li><a href="global.html#writeDatabase">writeDatabase</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Sun Oct 11 2020 22:53:30 GMT+0530 (India Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Fri Oct 16 2020 00:20:48 GMT+0530 (India Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

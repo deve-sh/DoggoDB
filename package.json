@@ -1,6 +1,6 @@
 {
   "name": "doggodb",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "description": "A lightweight dependencyless database layer built on  top of localStorage for the browser.",
   "main": "dist/doggodb.min.js",
   "scripts": {
