@@ -20,13 +20,14 @@ let errors = {
 
 let reservedFieldNames = { entryId: true };
 let reservedFilters = {
-	$and: "and",
-	$or: "or",
 	$not: "not",
 	$in: "in",
 	$notIn: "not-in",
 	$includes: "includes",
 	$notIncludes: "not-includes",
+};
+let reservedConditionals = {
+	$or: "or",
 };
 
 /**
@@ -248,9 +249,10 @@ class db {
 									)
 								)
 									allFiltersMatch = false;
-							} else if (!(filter in row))
-								allFiltersMatch = false;
-							else if (row[filter] != filters[filter])
+							} else if (
+								!(filter in row) ||
+								row[filter] != filters[filter]
+							)
 								allFiltersMatch = false;
 						}
 						if (allFiltersMatch) resultSet.push(row);
@@ -299,7 +301,23 @@ class db {
 
 				if (filters && Object.keys(filters).length > 0) {
 					for (let filter in filters) {
-						if (!(filter in row) || row[filter] != filters[filter])
+						if (
+							filter in reservedFilters &&
+							typeof filters[filter] === "object"
+						) {
+							if (
+								!verifyByCustomOperation(
+									row,
+									Object.keys(filters[filter])[0],
+									reservedFilters[filter],
+									Object.values(filters[filter])[0]
+								)
+							)
+								allFiltersMatch = false;
+						} else if (
+							!(filter in row) ||
+							row[filter] != filters[filter]
+						)
 							allFiltersMatch = false;
 					}
 				}
@@ -368,9 +386,26 @@ class db {
 				let allFiltersMatch = true;
 				let row = this.activeTable.contents[rowIndex];
 
-				for (let filter in filters)
-					if (!(filter in row) || row[filter] != filters[filter])
+				for (let filter in filters) {
+					if (
+						filter in reservedFilters &&
+						typeof filters[filter] === "object"
+					) {
+						if (
+							!verifyByCustomOperation(
+								row,
+								Object.keys(filters[filter])[0],
+								reservedFilters[filter],
+								Object.values(filters[filter])[0]
+							)
+						)
+							allFiltersMatch = false;
+					} else if (
+						!(filter in row) ||
+						row[filter] != filters[filter]
+					)
 						allFiltersMatch = false;
+				}
 
 				if (allFiltersMatch)
 					this.activeTable.contents.splice(rowIndex, 1);
@@ -427,13 +462,9 @@ function generateUniqueId() {
 function verifyByCustomOperation(row, field, operation, valueToValidateOn) {
 	if (!row || typeof row !== "object") throw new Error("Invalid row type.");
 
-	if(!row[field]) return false;
+	if (!row[field]) return false; // If the row does not have that column, simply don't use it.
 
 	switch (operation) {
-		case "and":
-			return false;
-		case "or":
-			return false;
 		case "in":
 			if (!valueToValidateOn || !Array.isArray(valueToValidateOn))
 				throw new Error(
@@ -443,7 +474,7 @@ function verifyByCustomOperation(row, field, operation, valueToValidateOn) {
 		case "not-in":
 			if (!valueToValidateOn || !Array.isArray(valueToValidateOn))
 				throw new Error(
-					"value to check field value 'in' is not an iterable."
+					"value to check field value 'not-in' is not an iterable."
 				);
 			return !valueToValidateOn.includes(row[field]);
 		case "not":
