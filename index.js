@@ -308,6 +308,12 @@ class db {
 				if (filters && Object.keys(filters).length > 0) {
 					for (let filter in filters) {
 						if (
+							filter in reservedConditionals &&
+							typeof filters[filter] === "object"
+						) {
+							if (!verifyOrOperation(row, filters[filter]))
+								allFiltersMatch = false;
+						} else if (
 							filter in reservedFilters &&
 							typeof filters[filter] === "object"
 						) {
@@ -394,6 +400,12 @@ class db {
 
 				for (let filter in filters) {
 					if (
+						filter in reservedConditionals &&
+						typeof filters[filter] === "object"
+					) {
+						if (!verifyOrOperation(row, filters[filter]))
+							allFiltersMatch = false;
+					} else if (
 						filter in reservedFilters &&
 						typeof filters[filter] === "object"
 					) {
