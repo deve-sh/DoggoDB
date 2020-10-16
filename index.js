@@ -517,7 +517,7 @@ function verifyOrOperation(row, filters) {
 	for (let filter in filters) {
 		if (filter in row && row[filter] == filters[filter]) {
 			anyConditionsMatch = true;
-			break;
+			break;	// We only need one match to verify an OR operation.
 		}
 	}
 	return anyConditionsMatch;

@@ -6,6 +6,8 @@ There are plans to expand to full-fledged file based database storage on the ser
 
 ## Index
 
+The links might not work in case you are viewing them in docs generated using JSDoc, it might be easier in that case to simply scroll to those sections.
+
 -   [Use Cases And Features](#use-cases-and-features)
 -   [Installation](#installation)
 -   [Usage](#usage)
@@ -187,11 +189,32 @@ dbInstance.table("newtable").find({
 });
 ```
 
-```
-Support for Or Queries is on the way.
+##### Or Queries
+
+Or Queries are now supported by DoggoDB. To create a
+
+```js
+dbInstance.table("newtable").find({ 
+    $or: { field1: "value1", field2: "value2"}
+});
 ```
 
-The above advanced querying capabilities are supported now for updating and deleting data as well.
+The above query, unlike the other filters, checks for the rows where either of the conditions is valid. This can be paired with other filters and they will behave as the regular and queries.
+
+**Notes**: As of now, the advanced queries can't be nested inside each other, but they can be paired together to create a super query.
+
+For Example:
+
+```js
+dbInstance.table("newtable").find({ 
+    $or: { field1: "value1", field2: "value2"}, 
+    $in: { field3: [1, 2, 3] }
+});
+```
+
+Another point to note is that the queries work only on rows that have those fields in them. If suppose you try to find rows where the `marks` attribute is 0, the rows that don't have `marks` won't be counted.
+
+The above advanced querying capabilities are supported for updating and deleting data as well.
 
 #### Updating Data
 
