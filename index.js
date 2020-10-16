@@ -472,7 +472,7 @@ function generateUniqueId() {
 
 /**
  * Function to check if a row in a table matches a specified operation or not. (Operations such as in, not, not-in, includes, not includes etc).
- * @param { Object } row - The object represnting a row in a database table.
+ * @param { Object } row - The object representing a row in a database table.
  * @param { field } field - Name of field to verify operation on.
  * @param { * } valueToValidateOn - The value to compare with, type depends on the operation.
  * @return { Boolean }
@@ -508,7 +508,7 @@ function verifyByCustomOperation(row, field, operation, valueToValidateOn) {
 
 /**
  * Function to check if a row in a table matches any one of the specified operations or not. I.E: "Or" Operations.
- * @param { Object } row - The object represnting a row in a database table.
+ * @param { Object } row - The object representing a row in a database table.
  * @param { Array } subFilters - The filters to check the row against.
  * @return { Boolean }
  */
