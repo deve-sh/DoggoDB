@@ -237,6 +237,12 @@ class db {
 						let allFiltersMatch = true;
 						for (let filter in filters) {
 							if (
+								filter in reservedConditionals &&
+								typeof filters[filter] === "object"
+							) {
+								if (!verifyOrOperation(row, filters[filter]))
+									allFiltersMatch = false;
+							} else if (
 								filter in reservedFilters &&
 								typeof filters[filter] === "object"
 							) {
@@ -453,7 +459,7 @@ function generateUniqueId() {
 }
 
 /**
- * Function to check if a row in a table matches a specified operation or not. (Operations such as and, or, in, not etc).
+ * Function to check if a row in a table matches a specified operation or not. (Operations such as in, not, not-in, includes, not includes etc).
  * @param { Object } row - The object represnting a row in a database table.
  * @param { field } field - Name of field to verify operation on.
  * @param { * } valueToValidateOn - The value to compare with, type depends on the operation.
@@ -488,4 +494,20 @@ function verifyByCustomOperation(row, field, operation, valueToValidateOn) {
 	}
 }
 
+/**
+ * Function to check if a row in a table matches any one of the specified operations or not. I.E: "Or" Operations.
+ * @param { Object } row - The object represnting a row in a database table.
+ * @param { Array } subFilters - The filters to check the row against.
+ * @return { Boolean }
+ */
+function verifyOrOperation(row, filters) {
+	let anyConditionsMatch = false;
+	for (let filter in filters) {
+		if (filter in row && row[filter] == filters[filter]) {
+			anyConditionsMatch = true;
+			break;
+		}
+	}
+	return anyConditionsMatch;
+}
 module.exports = { db };
