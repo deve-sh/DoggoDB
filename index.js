@@ -160,7 +160,7 @@ class db {
 				this.activeTable = null;
 			}
 
-			if (tableNameToDelete in this.database)
+			if (tableNameToDelete in this.database.tables)
 				delete this.database.tables[tableNameToDelete];
 		}
 
