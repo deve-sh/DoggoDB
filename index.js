@@ -351,7 +351,7 @@ class db {
 
 	updateAt(rowIndex, updates) {
 		// Function to update a row in a table at a certain index.
-		if (!this.activeTable) throw new Error(erors.NOACTIVETABLE);
+		if (!this.activeTable) throw new Error(errors.NOACTIVETABLE);
 
 		if (
 			this.activeTable &&
