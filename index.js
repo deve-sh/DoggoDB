@@ -123,13 +123,21 @@ class db {
 		return this;
 	}
 
+	/**
+		List all tables in the database as an object along with their contents and metadata.
+
+		@return { Object }
+	*/
 	list() {
-		// List all tables in the database along with their contents and metadata.
 		return this.database.tables;
 	}
 
+	/**
+		Function to create a new table. This is equivalent to db.table(tableName) because the table function also creates a new table if it does not exist.
+		@param { String } tableName - The name of the new table to create.
+		@return { db } DoggoDB Database Instance
+	*/
 	create(tableName) {
-		// Function to create a new table.
 		if (!tableName) throw new Error(errors.NOTABLENAME);
 
 		if (tableName in this.database.tables)
@@ -168,6 +176,10 @@ class db {
 		return this;
 	}
 
+	/**
+		Gets all contents of a table as an array of Objects.
+		@return { Array }
+	*/
 	get() {
 		if (this.activeTable) return this.activeTable.contents; // Get contents of the entire table.
 		throw new Error(errors.NOACTIVETABLE);
