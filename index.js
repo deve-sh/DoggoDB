@@ -10,6 +10,7 @@ let serialize = JSON.stringify;
 let errors = {
 	NODBNAME: "No Databse Name provided.",
 	NODBEXISTS: "No Databse with that name exists.",
+	DBALREADYEXISTS: "Database with that name already exists.",
 	NOTABLENAME: "No Table Name provided.",
 	TABLENOTFOUND: "Table with that name not found.",
 	NODATAPROVIDED: "No Data provided.",
@@ -47,7 +48,7 @@ function getDatabase(dbName) {
  */
 function createDatabase(dbName) {
 	if (databaseScope.getItem(dbName))
-		throw new Error("Database with that name already exists.");
+		throw new Error(errors.DBALREADYEXISTS);
 
 	return databaseScope.setItem(
 		dbName,
