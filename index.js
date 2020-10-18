@@ -103,18 +103,6 @@ class db {
 			this.onChange = listeners.onChange || null;
 			// Add more listeners as required.
 		}
-
-		this.table = this.table.bind(this);
-		this.list = this.list.bind(this);
-		this.create = this.create.bind(this);
-		this.save = this.save.bind(this);
-		this.drop = this.drop.bind(this);
-		this.get = this.get.bind(this);
-		this.find = this.find.bind(this);
-		this.add = this.add.bind(this);
-		this.findAndUpdate = this.findAndUpdate.bind(this);
-		this.delete = this.delete.bind(this);
-		this.updateAt = this.updateAt.bind(this);
 	}
 
 	save() {
@@ -173,7 +161,7 @@ class db {
 			}
 
 			if (tableNameToDelete in this.database)
-				delete this.database[tableNameToDelete];
+				delete this.database.tables[tableNameToDelete];
 		}
 
 		this.save();
@@ -192,11 +180,11 @@ class db {
 			throw new Error(errors.NOTAVALIDOBJECT);
 
 		this.activeTable.contents.push({
-			entryId: generateUniqueId(),
 			...newRow,
+			entryId: generateUniqueId(),
 		});
 		this.activeTable.updatedAt = new Date();
-		this.database[this.activeTable.tableName] = this.activeTable;
+		this.database.tables[this.activeTable.tableName] = this.activeTable;
 
 		this.save();
 
@@ -342,7 +330,7 @@ class db {
 				if (updateOnlyOne) break;
 			}
 
-			this.database[this.activeTable.tableName] = this.activeTable;
+			this.database.tables[this.activeTable.tableName] = this.activeTable;
 			this.save();
 		}
 
@@ -374,7 +362,7 @@ class db {
 			};
 			this.activeTable.updatedAt = new Date();
 
-			this.database[this.activeTable.tableName] = this.activeTable;
+			this.database.tables[this.activeTable.tableName] = this.activeTable;
 			this.save();
 		}
 
@@ -431,7 +419,7 @@ class db {
 				if (deleteOnlyOne) break;
 			}
 
-			this.database[this.activeTable.tableName] = this.activeTable;
+			this.database.tables[this.activeTable.tableName] = this.activeTable;
 			this.save();
 		}
 
@@ -517,7 +505,7 @@ function verifyOrOperation(row, filters) {
 	for (let filter in filters) {
 		if (filter in row && row[filter] == filters[filter]) {
 			anyConditionsMatch = true;
-			break;	// We only need one match to verify an OR operation.
+			break; // We only need one match to verify an OR operation.
 		}
 	}
 	return anyConditionsMatch;
