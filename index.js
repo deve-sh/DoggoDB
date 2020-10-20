@@ -47,8 +47,7 @@ function getDatabase(dbName) {
  *	@return {undefined}
  */
 function createDatabase(dbName) {
-	if (databaseScope.getItem(dbName))
-		throw new Error(errors.DBALREADYEXISTS);
+	if (databaseScope.getItem(dbName)) throw new Error(errors.DBALREADYEXISTS);
 
 	return databaseScope.setItem(
 		dbName,
@@ -282,6 +281,14 @@ class db {
 		}
 	}
 
+	/**
+		Updates certain set of rows from currently active table based on filters.
+		@param { Object } filters - The Map of filters that you would use in the "find" function.
+		@param { Object } updates - The Map of updates.
+		@param { Boolean } updateOnlyOne - If true it stops deleting at the first match.
+
+		@return { Boolean }
+	*/
 	findAndUpdate(filters, updates, updateOnlyOne = true) {
 		// Function to update a resultset in the database.
 		if (
@@ -297,6 +304,8 @@ class db {
 						delete updates[fieldToUpdate];
 				}
 			}
+
+			let matchFound = false;
 
 			for (
 				let rowIndex = 0;
@@ -336,6 +345,7 @@ class db {
 				}
 
 				if (allFiltersMatch) {
+					matchFound = true;
 					row = { ...row, ...updates };
 					this.activeTable.contents[rowIndex] = row;
 				}
@@ -345,11 +355,20 @@ class db {
 
 			this.database.tables[this.activeTable.tableName] = this.activeTable;
 			this.save();
+
+			if (matchFound) return true;
 		}
 
-		return this;
+		return false;
 	}
 
+	/**
+		Updates a row at a given position.
+		@param { Number } rowIndex - The index (Starting from 0) of the row to update.
+		@param { Object } updates - The Map of updates.
+
+		@return { Boolean } 
+	*/
 	updateAt(rowIndex, updates) {
 		// Function to update a row in a table at a certain index.
 		if (!this.activeTable) throw new Error(errors.NOACTIVETABLE);
@@ -377,11 +396,19 @@ class db {
 
 			this.database.tables[this.activeTable.tableName] = this.activeTable;
 			this.save();
+			return true;
 		}
 
-		return this;
+		return false;
 	}
 
+	/**
+		Deletes certain set of rows from currently active table based on filters.
+		@param { Object } filters - The Map of filters that you would use in the "find" function.
+		@param { Boolean } deleteOnlyOne - If true it stops deleting at the first match.
+
+		@return { Boolean }
+	*/
 	delete(filters, deleteOnlyOne = true) {
 		// Function to delete a row.
 		if (
@@ -391,6 +418,8 @@ class db {
 			filters &&
 			updates
 		) {
+			let matchFound = false;
+
 			for (
 				let rowIndex = 0;
 				rowIndex < this.activeTable.contents.length;
@@ -426,14 +455,17 @@ class db {
 						allFiltersMatch = false;
 				}
 
-				if (allFiltersMatch)
+				if (allFiltersMatch) {
+					matchFound = true;
 					this.activeTable.contents.splice(rowIndex, 1);
+				}
 
 				if (deleteOnlyOne) break;
 			}
 
 			this.database.tables[this.activeTable.tableName] = this.activeTable;
 			this.save();
+			if (matchFound) return true;
 		}
 
 		return this;
