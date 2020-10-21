@@ -415,8 +415,7 @@ class db {
 			this.activeTable &&
 			this.activeTable.contents &&
 			this.activeTable.contents.length &&
-			filters &&
-			updates
+			filters
 		) {
 			let matchFound = false;
 
@@ -468,7 +467,7 @@ class db {
 			if (matchFound) return true;
 		}
 
-		return this;
+		return false;
 	}
 }
 
