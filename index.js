@@ -105,6 +105,11 @@ class db {
 		}
 	}
 
+	/**
+		Saves the current database instance to localstorage.
+
+		@return { undefined }
+	*/
 	save() {
 		writeDatabase(this.databaseName, this.database);
 		this.database.updatedAt = new Date();
@@ -113,6 +118,13 @@ class db {
 	}
 
 	// Operations.
+	/**
+		Sets a table as the current active table for the database instance, before that it creates a new one if it doesn't already exist.
+
+		@param { String } tableName - The name of the table.
+
+		@return { db } DoggoDB Database Instance
+	*/
 	table(tableName) {
 		if (!tableName) throw new Error(errors.NOTABLENAME);
 
@@ -151,6 +163,13 @@ class db {
 		return this;
 	}
 
+	/**
+		Drops a table in the database.
+
+		@param { String } tableName - Name of the table to delete.
+
+		@return { db } DoggoDB Database Instance
+	*/
 	drop(tableName) {
 		// Code to drop an entire table.
 		// If no tableName is passed, it drops the active table if any.
@@ -185,6 +204,13 @@ class db {
 		throw new Error(errors.NOACTIVETABLE);
 	}
 
+	/**
+		Adds a new entry/row to the current active table in this database instance.
+
+		@param { Object } newRow - The object to insert as an entry. A new 'entryId' field is automatically added to it.
+
+		@return { db } DoggoDB Database Instance
+	*/
 	add(newRow) {
 		if (!newRow) throw new Error(errors.NODATAPROVIDED);
 		if (!this.activeTable) throw new Error(errors.NOACTIVETABLE);
