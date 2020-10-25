@@ -4,9 +4,15 @@
 
 let databaseScope = window.localStorage;
 
+/**
+	File ops coming soon.
+*/
 let unserialize = JSON.parse;
 let serialize = JSON.stringify;
 
+/**
+	Predefined List of Errors to manipulate them all at one place.
+*/
 let errors = {
 	NODBNAME: "No Databse Name provided.",
 	NODBEXISTS: "No Databse with that name exists.",
@@ -19,6 +25,11 @@ let errors = {
 	NOTAVALIDOBJECT: "Not a valid object for storage.",
 };
 
+/**
+	The following are reserved fields and filters that serve as 'keywords' and must not be used inside a row of a table in the database.
+
+	The reservedFilters are filters that the user can use for querying, refer to the querying docs for a guide on that.
+*/
 let reservedFieldNames = { entryId: true };
 let reservedFilters = {
 	$not: "not",
