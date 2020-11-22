@@ -19,6 +19,7 @@ The links might not work in case you are viewing them in docs generated using JS
     -   [Advanced Querying Capabilities](#advanced-querying-capabilities)
     -   [Updating Data](#updating-data)
     -   [Deleting Data](#deleting-data)
+    -   [Transactions](#transactions)
 -   [Contribution](#contribution)
 -   [Suggestions, Issues and Bugs](#suggestions-issues-and-bugs)
 
@@ -248,6 +249,30 @@ This method, just like the `findAndUpdate` method, **deletes only the the first 
 
 ```js
 dbInstance.table("newtable").delete(filters, false);
+```
+
+### Transactions
+
+The database now supports transactions. These are pretty simple in their work and follow the following algorithm to perform them:
+
+- Start a transaction by setting a flag to `true`.
+- Make any changes locally in the class state.
+- If the user commits the transaction, commit the changes made in the local class state to the storage.
+- If the user aborts the transaction, simply discard the changes made in the class state and load the new changes afresh.
+
+```js
+// Usage of transactions
+dbInstance.startTransaction();
+
+// ... Make any changes here to the instance as you would based on the above docs.
+
+// Commit the transaction
+dbInstance.commitTransaction();
+
+// Abort the transaction
+dbInstance.abortTransaction();
+
+// Continue...
 ```
 
 ## Contribution
