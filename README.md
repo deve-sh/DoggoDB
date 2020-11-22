@@ -2,7 +2,7 @@
 
 DoggoDB is a simple implementation of a local-storage based mini database in the browser that stores data in the form of JSON Data.
 
-There are plans to expand to full-fledged file based database storage on the server-side with indices, transactions and a better querying syntax.
+There are plans to expand to full-fledged file based database storage on the server-side with indices and a better querying syntax.
 
 ## Index
 
