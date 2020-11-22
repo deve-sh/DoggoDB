@@ -519,16 +519,29 @@ class db {
 		return false;
 	}
 
-	// Transaction Handlers
+	/* Transaction Handlers */
+
+	/**
+		Starts a transaction.
+		Any changes made after starting a transaction will only be committed to storage in case the commitTransaction function is called.
+	*/
 	startTransaction(){
 		this.isTransacting = true;
 	}
 
+	/**
+		Commits a transaction.
+		Any changes made after starting a transaction will be saved to storage.
+	*/
 	commitTransaction(){
 		this.isTransacting = false;
 		this.save();
 	}
 
+	/**
+		Aborts a transaction.
+		Any changes made after starting a transaction will be discarded and the database is started afresh from the last saved state from persisted storage.
+	*/
 	abortTransaction(){
 		this.isTransacting = false;
 		this.restoreToPreviousState();
