@@ -91,21 +91,8 @@ class db {
 	constructor(dbName, listeners = { onChange: null }) {
 		if (!dbName) throw new Error(errors.NODBNAME);
 
-		let persistedDatabase = getDatabase(dbName);
-		let unserializedDatabase = {
-			tables: {},
-			createdAt: new Date(),
-			updatedAt: new Date(),
-		};
-
-		if (persistedDatabase)
-			unserializedDatabase = unserialize(persistedDatabase);
-
-		if (!unserializedDatabase) createDatabase(dbName); // Database doesn't exist.
-
-		this.database = unserializedDatabase;
-		this.activeTable = null;
 		this.databaseName = dbName;
+		this.restoreToPreviousState();
 
 		// Event Listeners
 		this.onChange = null;
@@ -117,11 +104,36 @@ class db {
 	}
 
 	/**
+		Restores the database to previous/persisted state.
+		Can be used on start or during aborting a transaction.
+	*/
+	restoreToPreviousState(){
+		// Reverting database to previous state.
+		let previousDatabase = getDatabase(this.databaseName);
+		let unserializedDatabase = {
+			tables: {},
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		};
+
+		if (previousDatabase)
+			unserializedDatabase = unserialize(previousDatabase);
+
+		if (!unserializedDatabase) createDatabase(this.databaseName); // Database doesn't exist.
+		
+		this.database = unserializedDatabase;
+		this.activeTable = null;
+		this.isTransacting = false;	// To track whether there is a transaction going on the database.
+	}
+
+	/**
 		Saves the current database instance to localstorage.
 
 		@return { undefined }
 	*/
 	save() {
+		if(this.isTransacting) return;	// Need to stop transaction before saving. Use commitTransaction for the same.
+
 		writeDatabase(this.databaseName, this.database);
 		this.database.updatedAt = new Date();
 		if (this.onChange && typeof this.onChange === "function")
@@ -505,6 +517,21 @@ class db {
 		}
 
 		return false;
+	}
+
+	// Transaction Handlers
+	startTransaction(){
+		this.isTransacting = true;
+	}
+
+	commitTransaction(){
+		this.isTransacting = false;
+		this.save();
+	}
+
+	abortTransaction(){
+		this.isTransacting = false;
+		this.restoreToPreviousState();
 	}
 }
 
