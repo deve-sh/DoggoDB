@@ -2,7 +2,7 @@
 	Doggo DB 🐶
 */
 
-let databaseScope = window.localStorage;
+let databaseScope = require("./databaseScope")();
 
 /**
 	File ops coming soon.
