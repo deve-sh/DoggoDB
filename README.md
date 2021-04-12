@@ -4,6 +4,8 @@ DoggoDB is a simple implementation of a local-storage based mini database in the
 
 There are plans to expand to full-fledged file based database storage on the server-side with indices and a better querying syntax.
 
+**Note**: As of now, you can't use the implementation inside a server environment like Node.js since the Local Storage API isn't directly available inside a server.
+
 ## Index
 
 The links might not work in case you are viewing them in docs generated using JSDoc, it might be easier in that case to simply scroll to those sections.
