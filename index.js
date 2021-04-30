@@ -624,9 +624,15 @@ function verifyByCustomOperation(row, field, operation, valueToValidateOn) {
 function verifyOrOperation(row, filters) {
 	let anyConditionsMatch = false;
 	for (let filter in filters) {
-		if (filter in row && row[filter] == filters[filter]) {
-			anyConditionsMatch = true;
-			break; // We only need one match to verify an OR operation.
+		if (filter in row) {
+			let valueToCompare = row[filter];
+			if(filter.includes("."))
+				valueToCompare = getNestedField(row, filter);
+
+			if(valueToCompare == filters[filter]){
+				anyConditionsMatch = true;
+				break; // We only need one match to verify an OR operation.
+			}
 		}
 	}
 	return anyConditionsMatch;
