@@ -631,4 +631,21 @@ function verifyOrOperation(row, filters) {
 	}
 	return anyConditionsMatch;
 }
+
+/**
+ * Function to get nested fields from objects, using strings like: 'parentField.childField'.
+ * @param { Object } row - The object representing a row in a database table.
+ * @param { String } fieldToGet - The string representation of the field to get from the database.
+ */
+function getNestedField(row, fieldToGet) {
+	let level = fieldToGet.split(".");
+	let currentRowState = { ...row };
+	for (var i = 0; i < level.length; i++) {
+		if (currentRowState[level[i]])
+			currentRowState = currentRowState[level[i]];
+		else return null;
+	}
+	return currentRowState;
+}
+
 module.exports = { db };
