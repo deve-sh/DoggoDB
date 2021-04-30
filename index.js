@@ -591,25 +591,29 @@ function verifyByCustomOperation(row, field, operation, valueToValidateOn) {
 
 	if (!row[field]) return false; // If the row does not have that column, simply don't use it.
 
+	let fieldValue = row[field];
+	if(field.includes("."))
+		fieldValue = getNestedField(row[field]);
+
 	switch (operation) {
 		case "in":
 			if (!valueToValidateOn || !Array.isArray(valueToValidateOn))
 				throw new Error(
 					"value to check field value 'in' is not an iterable."
 				);
-			return valueToValidateOn.includes(row[field]);
+			return valueToValidateOn.includes(fieldValue);
 		case "not-in":
 			if (!valueToValidateOn || !Array.isArray(valueToValidateOn))
 				throw new Error(
 					"value to check field value 'not-in' is not an iterable."
 				);
-			return !valueToValidateOn.includes(row[field]);
+			return !valueToValidateOn.includes(fieldValue);
 		case "not":
-			return row[field] != valueToValidateOn;
+			return fieldValue != valueToValidateOn;
 		case "includes":
-			return row[field].includes(valueToValidateOn);
+			return fieldValue.includes(valueToValidateOn);
 		case "not-includes":
-			return !row[field].includes(valueToValidateOn);
+			return !fieldValue.includes(valueToValidateOn);
 		default:
 			throw new Error("Invalid/Unsupported operation.");
 	}
