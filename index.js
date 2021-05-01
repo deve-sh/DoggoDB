@@ -304,11 +304,18 @@ class db {
 									)
 								)
 									allFiltersMatch = false;
-							} else if (
-								!(filter in row) ||
-								row[filter] != filters[filter]
-							)
-								allFiltersMatch = false;
+							} else{
+								if(filter.includes(".")){
+									let valueToCheckAgainst = getNestedField(row, filter);
+									if(valueToCheckAgainst != filters[filter])
+										allFiltersMatch = false;
+								}
+								else if (
+									!(filter in row) ||
+									row[filter] != filters[filter]
+								)
+									allFiltersMatch = false;
+							}
 						}
 						if (allFiltersMatch) resultSet.push(row);
 					}
