@@ -152,7 +152,7 @@ dbInstance.table("newtable").find({ field: "value" }, { offset: 2, limit: 3 });
 dbInstance.table("newtable").find({ field: "value" }, { offset: 4 });
 ```
 
-Queries now also support nested querying, for example, if you want to search for a field match inside an object in your table row named `details` with field named `access`:
+**Beta (Not on NPM Yet)**: Queries now also support nested querying, for example, if you want to search for a field match inside an object in your table row named `details` with field named `access`:
 
 ```js
 dbInstance.table("newtable").find({
