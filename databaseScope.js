@@ -9,7 +9,7 @@ const isServer = require("./isServer");
 */
 function databaseScope() {
 	let isServerEnvironment = isServer();
-	let abstraction = isServerEnvironment ? window.localStorage : fs;
+	let abstraction = !isServerEnvironment ? window.localStorage : {};
 
 	return {
 		/**
@@ -38,7 +38,7 @@ function databaseScope() {
 			@return { Boolean } Results of the operation.
 		*/
 		setItem: function(itemToSet = "", contentToSet = "") {
-			if (!isServerEnvironment) return abstraction.setItem(itemToSet);
+			if (!isServerEnvironment) return abstraction.setItem(itemToSet, contentToSet);
 			else {
 				let fileName = `${itemToGet}.json`;
 				let fileContents = abstraction.writeFileSync(
