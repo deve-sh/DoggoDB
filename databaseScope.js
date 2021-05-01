@@ -8,8 +8,8 @@ const isServer = require("./isServer");
 	@return { Object } { getItem: function, setItem: function }
 */
 function databaseScope() {
-	let isServer = isServer();
-	let abstraction = isServer ? window.localStorage : fs;
+	let isServerEnvironment = isServer();
+	let abstraction = isServerEnvironment ? window.localStorage : fs;
 
 	return {
 		/**
@@ -20,7 +20,7 @@ function databaseScope() {
 			@return { String } The contents of the file or the item.
 		*/
 		getItem: function(itemToGet = "") {
-			if (!isServer) return abstraction.getItem(itemToGet);
+			if (!isServerEnvironment) return abstraction.getItem(itemToGet);
 			else {
 				let fileName = `${itemToGet}.json`;
 				let fileContents = abstraction.readFileSync(fileName, {
@@ -38,7 +38,7 @@ function databaseScope() {
 			@return { Boolean } Results of the operation.
 		*/
 		setItem: function(itemToSet = "", contentToSet = "") {
-			if (!isServer) return abstraction.setItem(itemToSet);
+			if (!isServerEnvironment) return abstraction.setItem(itemToSet);
 			else {
 				let fileName = `${itemToGet}.json`;
 				let fileContents = abstraction.writeFileSync(
