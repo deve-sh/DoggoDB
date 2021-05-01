@@ -152,6 +152,14 @@ dbInstance.table("newtable").find({ field: "value" }, { offset: 2, limit: 3 });
 dbInstance.table("newtable").find({ field: "value" }, { offset: 4 });
 ```
 
+Queries now also support nested querying, for example, if you want to search for a field match inside an object in your table row named `details` with field named `access`:
+
+```js
+dbInstance.table("newtable").find({
+    "details.access": "admin"   // For data structured like: { details: { access: "admin", name: "xyz" } }
+})
+```
+
 #### Advanced Querying Capabilities
 
 On top of the limits and offset methods, the library also supports advanced querying capabilities such as 'Array Membership' and other operations. They can be acheived by structuring your filter objects in specific ways.
