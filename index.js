@@ -282,45 +282,7 @@ class db {
 					index = 0;
 				for (let row of this.activeTable.contents) {
 					if (index >= offset && resultSet.length <= limit) {
-						let allFiltersMatch = true;
-						for (let filter in filters) {
-							if (
-								filter in reservedConditionals &&
-								typeof filters[filter] === "object"
-							) {
-								if (!verifyOrOperation(row, filters[filter]))
-									allFiltersMatch = false;
-							} else if (
-								filter in reservedFilters &&
-								typeof filters[filter] === "object"
-							) {
-								if (
-									!verifyByCustomOperation(
-										row,
-										Object.keys(filters[filter])[0],
-										reservedFilters[filter],
-										Object.values(filters[filter])[0]
-									)
-								)
-									allFiltersMatch = false;
-							} else {
-								if (filter.includes(".")) {
-									// Nested Field Querying.
-									let valueToCheckAgainst = getNestedField(row, filter);
-									if (
-										!validateValueAgainstFilter(
-											filters[filter],
-											valueToCheckAgainst
-										)
-									)
-										allFiltersMatch = false;
-								} else if (
-									!(filter in row) ||
-									!validateValueAgainstFilter(filters[filter], row[filter])
-								)
-									allFiltersMatch = false;
-							}
-						}
+						let allFiltersMatch = rowMatchesFilters(row, filters);
 						if (allFiltersMatch) resultSet.push(row);
 					}
 					index++;
@@ -372,45 +334,8 @@ class db {
 				let allFiltersMatch = true;
 				let row = this.activeTable.contents[rowIndex];
 
-				if (filters && Object.keys(filters).length > 0) {
-					for (let filter in filters) {
-						if (
-							filter in reservedConditionals &&
-							typeof filters[filter] === "object"
-						) {
-							if (!verifyOrOperation(row, filters[filter]))
-								allFiltersMatch = false;
-						} else if (
-							filter in reservedFilters &&
-							typeof filters[filter] === "object"
-						) {
-							if (
-								!verifyByCustomOperation(
-									row,
-									Object.keys(filters[filter])[0],
-									reservedFilters[filter],
-									Object.values(filters[filter])[0]
-								)
-							)
-								allFiltersMatch = false;
-						} else {
-							if (filter.includes(".")) {
-								let valueToCheckAgainst = getNestedField(row, filter);
-								if (
-									!validateValueAgainstFilter(
-										filters[filter],
-										valueToCheckAgainst
-									)
-								)
-									allFiltersMatch = false;
-							} else if (
-								!(filter in row) ||
-								!validateValueAgainstFilter(filters[filter], row[filter])
-							)
-								allFiltersMatch = false;
-						}
-					}
-				}
+				if (filters && Object.keys(filters).length > 0)
+					allFiltersMatch = rowMatchesFilters(row, filters);
 
 				if (allFiltersMatch) {
 					matchFound = true;
@@ -492,46 +417,8 @@ class db {
 				rowIndex < this.activeTable.contents.length;
 				rowIndex++
 			) {
-				let allFiltersMatch = true;
 				let row = this.activeTable.contents[rowIndex];
-
-				for (let filter in filters) {
-					if (
-						filter in reservedConditionals &&
-						typeof filters[filter] === "object"
-					) {
-						if (!verifyOrOperation(row, filters[filter]))
-							allFiltersMatch = false;
-					} else if (
-						filter in reservedFilters &&
-						typeof filters[filter] === "object"
-					) {
-						if (
-							!verifyByCustomOperation(
-								row,
-								Object.keys(filters[filter])[0],
-								reservedFilters[filter],
-								Object.values(filters[filter])[0]
-							)
-						)
-							allFiltersMatch = false;
-					} else {
-						if (filter.includes(".")) {
-							let valueToCheckAgainst = getNestedField(row, filter);
-							if (
-								!validateValueAgainstFilter(
-									filters[filter],
-									valueToCheckAgainst
-								)
-							)
-								allFiltersMatch = false;
-						} else if (
-							!(filter in row) ||
-							!validateValueAgainstFilter(filters[filter], row[filter])
-						)
-							allFiltersMatch = false;
-					}
-				}
+				let allFiltersMatch = rowMatchesFilters(row, filters);
 
 				if (allFiltersMatch) {
 					matchFound = true;
@@ -598,6 +485,56 @@ class Table {
 }
 
 /* Other helper functions. */
+
+/**
+ * Checks whether a table row matches filters or not.
+ * @param { Object } row - The row to validate.
+ * @param { Object } filters - The filters to validate against.
+ * @returns { Boolean }
+ */
+function rowMatchesFilters(row, filters) {
+	let allFiltersMatch = true;
+	for (let filter in filters) {
+		if (filter in reservedConditionals && typeof filters[filter] === "object") {
+			if (!verifyOrOperation(row, filters[filter])) {
+				allFiltersMatch = false;
+				break;
+			}
+		} else if (
+			filter in reservedFilters &&
+			typeof filters[filter] === "object"
+		) {
+			if (
+				!verifyByCustomOperation(
+					row,
+					Object.keys(filters[filter])[0],
+					reservedFilters[filter],
+					Object.values(filters[filter])[0]
+				)
+			) {
+				allFiltersMatch = false;
+				break;
+			}
+		} else {
+			if (filter.includes(".")) {
+				// Nested Field Querying.
+				let valueToCheckAgainst = getNestedField(row, filter);
+				if (!validateValueAgainstFilter(filters[filter], valueToCheckAgainst)) {
+					allFiltersMatch = false;
+					break;
+				}
+			} else if (
+				!(filter in row) ||
+				!validateValueAgainstFilter(filters[filter], row[filter])
+			) {
+				allFiltersMatch = false;
+				break;
+			}
+		}
+	}
+
+	return allFiltersMatch;
+}
 
 /**
  * Generates a unique id to be used in fields such as 'entryId'.
