@@ -515,8 +515,22 @@ class db {
 							)
 						)
 							allFiltersMatch = false;
-					} else if (!(filter in row) || row[filter] != filters[filter])
-						allFiltersMatch = false;
+					} else {
+						if (filter.includes(".")) {
+							let valueToCheckAgainst = getNestedField(row, filter);
+							if (
+								!validateValueAgainstFilter(
+									filters[filter],
+									valueToCheckAgainst
+								)
+							)
+								allFiltersMatch = false;
+						} else if (
+							!(filter in row) ||
+							!validateValueAgainstFilter(filters[filter], row[filter])
+						)
+							allFiltersMatch = false;
+					}
 				}
 
 				if (allFiltersMatch) {
@@ -658,6 +672,7 @@ function verifyOrOperation(row, filters) {
  * Function to get nested fields from objects, using strings like: 'parentField.childField'.
  * @param { Object } row - The object representing a row in a database table.
  * @param { String } fieldToGet - The string representation of the field to get from the database.
+ * @return { any }
  */
 function getNestedField(row, fieldToGet) {
 	let level = fieldToGet.split(".");
@@ -670,10 +685,13 @@ function getNestedField(row, fieldToGet) {
 }
 
 /**
- * Function to validate value against a regex.
+ * Function to validate value against a regex or just plain value.
+ * @param { any } filterValue - The value of the filter to validate against.
+ * @param { any } value - The value to check for equality.
+ * @return { Boolean }
  */
 function validateValueAgainstFilter(filterValue, value) {
-	if (filterValue instanceof RegExp && filterValue.test(value)) return true;
+	if (filterValue instanceof RegExp) return filterValue.test(value);
 	else return filterValue == value;
 }
 
