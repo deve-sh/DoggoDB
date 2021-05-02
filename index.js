@@ -659,7 +659,7 @@ function verifyOrOperation(row, filters) {
 			let valueToCompare = row[filter];
 			if (filter.includes(".")) valueToCompare = getNestedField(row, filter);
 
-			if (valueToCompare == filters[filter]) {
+			if (validateValueAgainstFilter(filters[filter], valueToCompare)) {
 				anyConditionsMatch = true;
 				break; // We only need one match to verify an OR operation.
 			}
