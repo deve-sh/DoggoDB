@@ -211,7 +211,7 @@ dbInstance.table("newtable").find({
 
 ##### Or Queries
 
-Or Queries are now supported by DoggoDB. To create a
+Or Queries are now supported by DoggoDB.
 
 ```js
 dbInstance.table("newtable").find({ 
@@ -219,7 +219,7 @@ dbInstance.table("newtable").find({
 });
 ```
 
-The above query, unlike the other filters, checks for the rows where either of the conditions is valid. This can be paired with other filters and they will behave as the regular and queries.
+The above query, unlike the other filters, checks for the rows where either of the conditions is valid. This can be paired with other filters and they will behave as regular queries.
 
 **Notes**: As of now, the advanced queries can't be nested inside each other, but they can be paired together to create a super query.
 
