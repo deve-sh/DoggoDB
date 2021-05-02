@@ -306,13 +306,14 @@ class db {
 									allFiltersMatch = false;
 							} else{
 								if(filter.includes(".")){
+									// Nested Field Querying.
 									let valueToCheckAgainst = getNestedField(row, filter);
-									if(valueToCheckAgainst != filters[filter])
+									if(!validateValueAgainstFilter(filters[filter], valueToCheckAgainst))
 										allFiltersMatch = false;
 								}
 								else if (
 									!(filter in row) ||
-									row[filter] != filters[filter]
+									!validateValueAgainstFilter(filters[filter], row[filter])
 								)
 									allFiltersMatch = false;
 							}
@@ -670,6 +671,15 @@ function getNestedField(row, fieldToGet) {
 		else return null;
 	}
 	return currentRowState;
+}
+
+/**
+ * Function to validate value against a regex.
+ */
+function validateValueAgainstFilter(filterValue, value){
+	if(filterValue instanceof RegExp && filterValue.test(value))
+		return true;
+	else return filterValue == value;
 }
 
 module.exports = { db };
