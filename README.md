@@ -152,7 +152,7 @@ dbInstance.table("newtable").find({ field: "value" }, { offset: 2, limit: 3 });
 dbInstance.table("newtable").find({ field: "value" }, { offset: 4 });
 ```
 
-**Beta (Not on Installable Package Yet)**: Queries now also support nested querying, for example, if you want to search for a field match inside an object in your table row named `details` with field named `access`:
+Queries now also support nested querying, for example, if you want to search for a field match inside an object in your table row named `details` with field named `access`:
 
 ```js
 dbInstance.table("newtable").find({
@@ -160,7 +160,7 @@ dbInstance.table("newtable").find({
 })
 ```
 
-**Beta (Not on Installable Package Yet)**: Queries now also support Regular Expression Based querying (Even for nested object queries):
+Queries now also support Regular Expression Based querying (Even for nested object queries):
 
 ```js
 dbInstance.table("newtable").find({
