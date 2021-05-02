@@ -107,7 +107,7 @@ class db {
 		Restores the database to previous/persisted state.
 		Can be used on start or during aborting a transaction.
 	*/
-	restoreToPreviousState(){
+	restoreToPreviousState() {
 		// Reverting database to previous state.
 		let previousDatabase = getDatabase(this.databaseName);
 		let unserializedDatabase = {
@@ -116,14 +116,13 @@ class db {
 			updatedAt: new Date(),
 		};
 
-		if (previousDatabase)
-			unserializedDatabase = unserialize(previousDatabase);
+		if (previousDatabase) unserializedDatabase = unserialize(previousDatabase);
 
 		if (!unserializedDatabase) createDatabase(this.databaseName); // Database doesn't exist.
-		
+
 		this.database = unserializedDatabase;
 		this.activeTable = null;
-		this.isTransacting = false;	// To track whether there is a transaction going on the database.
+		this.isTransacting = false; // To track whether there is a transaction going on the database.
 	}
 
 	/**
@@ -132,7 +131,7 @@ class db {
 		@return { undefined }
 	*/
 	save() {
-		if(this.isTransacting) return;	// Need to stop transaction before saving. Use commitTransaction for the same.
+		if (this.isTransacting) return; // Need to stop transaction before saving. Use commitTransaction for the same.
 
 		writeDatabase(this.databaseName, this.database);
 		this.database.updatedAt = new Date();
@@ -304,14 +303,18 @@ class db {
 									)
 								)
 									allFiltersMatch = false;
-							} else{
-								if(filter.includes(".")){
+							} else {
+								if (filter.includes(".")) {
 									// Nested Field Querying.
 									let valueToCheckAgainst = getNestedField(row, filter);
-									if(!validateValueAgainstFilter(filters[filter], valueToCheckAgainst))
+									if (
+										!validateValueAgainstFilter(
+											filters[filter],
+											valueToCheckAgainst
+										)
+									)
 										allFiltersMatch = false;
-								}
-								else if (
+								} else if (
 									!(filter in row) ||
 									!validateValueAgainstFilter(filters[filter], row[filter])
 								)
@@ -325,10 +328,7 @@ class db {
 				return resultSet;
 			} else if (this.activeTable && this.activeTable.contents) {
 				if (offset || limit !== Infinity) {
-					return [...this.activeTable.contents].slice(
-						offset,
-						offset + limit
-					);
+					return [...this.activeTable.contents].slice(offset, offset + limit);
 				}
 				return this.activeTable.contents;
 			}
@@ -393,15 +393,19 @@ class db {
 								)
 							)
 								allFiltersMatch = false;
-						} else{
-							if(filter.includes(".")){
+						} else {
+							if (filter.includes(".")) {
 								let valueToCheckAgainst = getNestedField(row, filter);
-								if(valueToCheckAgainst != filters[filter])
+								if (
+									!validateValueAgainstFilter(
+										filters[filter],
+										valueToCheckAgainst
+									)
+								)
 									allFiltersMatch = false;
-							}
-							else if (
+							} else if (
 								!(filter in row) ||
-								row[filter] != filters[filter]
+								!validateValueAgainstFilter(filters[filter], row[filter])
 							)
 								allFiltersMatch = false;
 						}
@@ -511,10 +515,7 @@ class db {
 							)
 						)
 							allFiltersMatch = false;
-					} else if (
-						!(filter in row) ||
-						row[filter] != filters[filter]
-					)
+					} else if (!(filter in row) || row[filter] != filters[filter])
 						allFiltersMatch = false;
 				}
 
@@ -540,7 +541,7 @@ class db {
 		Starts a transaction.
 		Any changes made after starting a transaction will only be committed to storage in case the commitTransaction function is called.
 	*/
-	startTransaction(){
+	startTransaction() {
 		this.isTransacting = true;
 	}
 
@@ -548,7 +549,7 @@ class db {
 		Commits a transaction.
 		Any changes made after starting a transaction will be saved to storage.
 	*/
-	commitTransaction(){
+	commitTransaction() {
 		this.isTransacting = false;
 		this.save();
 	}
@@ -557,7 +558,7 @@ class db {
 		Aborts a transaction.
 		Any changes made after starting a transaction will be discarded and the database is started afresh from the last saved state from persisted storage.
 	*/
-	abortTransaction(){
+	abortTransaction() {
 		this.isTransacting = false;
 		this.restoreToPreviousState();
 	}
@@ -607,15 +608,12 @@ function verifyByCustomOperation(row, field, operation, valueToValidateOn) {
 	if (!row[field]) return false; // If the row does not have that column, simply don't use it.
 
 	let fieldValue = row[field];
-	if(field.includes("."))
-		fieldValue = getNestedField(row[field]);
+	if (field.includes(".")) fieldValue = getNestedField(row[field]);
 
 	switch (operation) {
 		case "in":
 			if (!valueToValidateOn || !Array.isArray(valueToValidateOn))
-				throw new Error(
-					"value to check field value 'in' is not an iterable."
-				);
+				throw new Error("value to check field value 'in' is not an iterable.");
 			return valueToValidateOn.includes(fieldValue);
 		case "not-in":
 			if (!valueToValidateOn || !Array.isArray(valueToValidateOn))
@@ -645,10 +643,9 @@ function verifyOrOperation(row, filters) {
 	for (let filter in filters) {
 		if (filter in row) {
 			let valueToCompare = row[filter];
-			if(filter.includes("."))
-				valueToCompare = getNestedField(row, filter);
+			if (filter.includes(".")) valueToCompare = getNestedField(row, filter);
 
-			if(valueToCompare == filters[filter]){
+			if (valueToCompare == filters[filter]) {
 				anyConditionsMatch = true;
 				break; // We only need one match to verify an OR operation.
 			}
@@ -666,8 +663,7 @@ function getNestedField(row, fieldToGet) {
 	let level = fieldToGet.split(".");
 	let currentRowState = { ...row };
 	for (var i = 0; i < level.length; i++) {
-		if (currentRowState[level[i]])
-			currentRowState = currentRowState[level[i]];
+		if (currentRowState[level[i]]) currentRowState = currentRowState[level[i]];
 		else return null;
 	}
 	return currentRowState;
@@ -676,9 +672,8 @@ function getNestedField(row, fieldToGet) {
 /**
  * Function to validate value against a regex.
  */
-function validateValueAgainstFilter(filterValue, value){
-	if(filterValue instanceof RegExp && filterValue.test(value))
-		return true;
+function validateValueAgainstFilter(filterValue, value) {
+	if (filterValue instanceof RegExp && filterValue.test(value)) return true;
 	else return filterValue == value;
 }
 
