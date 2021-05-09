@@ -182,7 +182,8 @@ The following two are only applicable for fields that are of the type Arrays:
 - `$notIncludes`: Checks if a field's value includes a certain value or not.
 
 The remaining are also array-membership operations.
-- `$in`:
+- `$in`: Checks if a field's value is included in a set of values.
+- `$any`: Simple copy of '$in'.
 - `$notIn`: Checks if a field's value is not present in an Array value. 
 
 **Usage**:
@@ -198,6 +199,10 @@ dbInstance.table("newtable").find({
 
 dbInstance.table("newtable").find({ 
     $notIncludes: { field: 1 }
+});
+
+dbInstance.table("newtable").find({ 
+    $any: { field: [ 1, 2, 3] }
 });
 
 dbInstance.table("newtable").find({ 

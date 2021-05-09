@@ -564,8 +564,9 @@ function verifyByCustomOperation(row, field, operation, valueToValidateOn) {
 
 	switch (operation) {
 		case "in":
+		case "any":
 			if (!valueToValidateOn || !Array.isArray(valueToValidateOn))
-				throw new Error("Value to check field value 'in' is not an iterable.");
+				throw new Error("Value to check field value 'in' or 'any' is not an iterable.");
 			return valueToValidateOn.includes(fieldValue);
 		case "not-in":
 			if (!valueToValidateOn || !Array.isArray(valueToValidateOn))
@@ -579,12 +580,6 @@ function verifyByCustomOperation(row, field, operation, valueToValidateOn) {
 			return fieldValue.includes(valueToValidateOn);
 		case "not-includes":
 			return !fieldValue.includes(valueToValidateOn);
-		case "any":
-			if (!valueToValidateOn || !Array.isArray(valueToValidateOn))
-				throw new Error(
-					"Value to check field value 'any' is not an iterable."
-				);
-			return valueToValidateOn.includes(fieldValue);
 		default:
 			throw new Error("Invalid/Unsupported operation.");
 	}
