@@ -37,6 +37,7 @@ let reservedFilters = {
 	$notIn: "not-in",
 	$includes: "includes",
 	$notIncludes: "not-includes",
+	$any: "any",
 };
 let reservedConditionals = {
 	$or: "or",
@@ -578,6 +579,8 @@ function verifyByCustomOperation(row, field, operation, valueToValidateOn) {
 			return fieldValue.includes(valueToValidateOn);
 		case "not-includes":
 			return !fieldValue.includes(valueToValidateOn);
+		case "any":
+			return valueToValidateOn.includes(fieldValue);
 		default:
 			throw new Error("Invalid/Unsupported operation.");
 	}
